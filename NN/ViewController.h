@@ -8,8 +8,11 @@
 
 #import <Cocoa/Cocoa.h>
 
+
 @interface ViewController : NSViewController
 
+@property (weak) IBOutlet NSButton *startButton;
+- (IBAction)startAction:(id)sender;
 
 @end
 
