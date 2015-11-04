@@ -53,6 +53,7 @@
 		A18D00D81BEAB8E500AE72FB /* neuralNetworkTrainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = neuralNetworkTrainer.cpp; sourceTree = "<group>"; };
 		A18D00D91BEAB8E500AE72FB /* neuralNetworkTrainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = neuralNetworkTrainer.h; sourceTree = "<group>"; };
 		A18D00DD1BEABEC100AE72FB /* letter_recognition_training_example.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = letter_recognition_training_example.h; sourceTree = "<group>"; };
+		A18D00DE1BEACB6900AE72FB /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,6 +77,7 @@
 		A15449AC1BEAA183007CBC82 = {
 			isa = PBXGroup;
 			children = (
+				A18D00DE1BEACB6900AE72FB /* README.md */,
 				A15449EF1BEAA2F4007CBC82 /* Neural_Network_v2 */,
 				A15449B71BEAA183007CBC82 /* NN */,
 				A15449CE1BEAA184007CBC82 /* NNTests */,
