@@ -32,8 +32,27 @@
     outputFile = [outputFile stringByAppendingPathComponent:@"weights.csv"];
     
     
+    self.progressLabel.stringValue = @"Training...";
+    self.progressIndicator.doubleValue = 0;
     
-    example_nn([inputFile UTF8String], [outputFile UTF8String]);
+    self.progressIndicator.hidden = self.progressLabel.hidden = NO;
+    self.startButton.enabled = NO;
+    self.startButton.title = @"Working...";
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+    
+        example_nn([inputFile UTF8String], [outputFile UTF8String]);
+        
+        dispatch_sync(dispatch_get_main_queue(), ^{
+        
+            self.startButton.enabled = YES;
+            self.startButton.title = @"Start";
+            self.progressIndicator.hidden = self.progressLabel.hidden = YES;
+            
+        });
+    });
+    
+    
     
 }
 @end

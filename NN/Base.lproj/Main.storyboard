@@ -684,20 +684,41 @@
                                     <action selector="startAction:" target="XfG-lQ-9wD" id="gLR-ca-QZ2"/>
                                 </connections>
                             </button>
+                            <progressIndicator hidden="YES" wantsLayer="YES" maxValue="100" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="Aff-b3-Kfc">
+                                <rect key="frame" x="20" y="19" width="440" height="20"/>
+                                <animations/>
+                            </progressIndicator>
+                            <textField hidden="YES" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="bar-T5-oKy">
+                                <rect key="frame" x="18" y="39" width="444" height="17"/>
+                                <animations/>
+                                <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Label" usesSingleLineMode="YES" id="8QH-Ja-huY">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                         </subviews>
                         <constraints>
+                            <constraint firstItem="Aff-b3-Kfc" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="20" id="354-Eq-0U9"/>
+                            <constraint firstItem="Aff-b3-Kfc" firstAttribute="top" secondItem="bar-T5-oKy" secondAttribute="bottom" constant="1" id="CHM-P3-2NR"/>
                             <constraint firstItem="SFR-LX-90v" firstAttribute="centerY" secondItem="m2S-Jp-Qdl" secondAttribute="centerY" id="CXz-Pz-q1c"/>
                             <constraint firstItem="SFR-LX-90v" firstAttribute="centerX" secondItem="m2S-Jp-Qdl" secondAttribute="centerX" id="LPY-45-cce"/>
+                            <constraint firstAttribute="bottom" secondItem="Aff-b3-Kfc" secondAttribute="bottom" constant="20" id="Ohz-f3-oQD"/>
+                            <constraint firstItem="bar-T5-oKy" firstAttribute="trailing" secondItem="Aff-b3-Kfc" secondAttribute="trailing" id="Yg9-EM-zih"/>
+                            <constraint firstAttribute="trailing" secondItem="Aff-b3-Kfc" secondAttribute="trailing" constant="20" id="bqH-9K-Rqq"/>
+                            <constraint firstItem="bar-T5-oKy" firstAttribute="leading" secondItem="Aff-b3-Kfc" secondAttribute="leading" id="ucQ-5d-qgk"/>
                         </constraints>
                         <animations/>
                     </view>
                     <connections>
+                        <outlet property="progressIndicator" destination="Aff-b3-Kfc" id="Dfj-Aw-rCb"/>
+                        <outlet property="progressLabel" destination="bar-T5-oKy" id="w6v-iD-JV2"/>
                         <outlet property="startButton" destination="SFR-LX-90v" id="o4o-0R-dy6"/>
                     </connections>
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-121" y="544"/>
+            <point key="canvasLocation" x="-220" y="641"/>
         </scene>
     </scenes>
 </document>

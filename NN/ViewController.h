@@ -11,6 +11,9 @@
 
 @interface ViewController : NSViewController
 
+@property (weak) IBOutlet NSTextField *progressLabel;
+@property (weak) IBOutlet NSProgressIndicator *progressIndicator;
+
 @property (weak) IBOutlet NSButton *startButton;
 - (IBAction)startAction:(id)sender;
 
