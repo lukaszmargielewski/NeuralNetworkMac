@@ -5,4 +5,4 @@
 * MSN & email: banguelov@cs.up.ac.za
 *********************************************************************/
 
-void example_nn(const char *inputFile, const char *outputFile);
+void example_nn(const char *inputFile, const char *outputFile, const char *logFile);

@@ -26,11 +26,12 @@
 - (IBAction)startAction:(id)sender {
     
 
-    NSString *inputFile        = [[NSBundle mainBundle] pathForResource:@"letter-recognition-2" ofType:@"csv"];
+    NSString *inputFile       = [[NSBundle mainBundle] pathForResource:@"letter-recognition-2" ofType:@"csv"];
     
-    NSString *outputFile       = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0];
-    outputFile = [outputFile stringByAppendingPathComponent:@"weights.csv"];
+    NSString *outputDir       = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0];
+    NSString *outputFile      = [outputDir stringByAppendingPathComponent:@"weights.csv"];
     
+    NSString *logFile         = [outputDir stringByAppendingPathComponent:@"log.csv"];
     
     self.progressLabel.stringValue = @"Training...";
     self.progressIndicator.doubleValue = 0;
@@ -41,7 +42,7 @@
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
     
-        example_nn([inputFile UTF8String], [outputFile UTF8String]);
+        example_nn([inputFile UTF8String], [outputFile UTF8String], [logFile UTF8String]);
         
         dispatch_sync(dispatch_get_main_queue(), ^{
         

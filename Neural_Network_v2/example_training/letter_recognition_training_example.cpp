@@ -18,7 +18,7 @@
 //use standard namespace
 using namespace std;
 
-void example_nn(const char *inputFile, const char *outputFile)
+void example_nn(const char *inputFile, const char *outputFile, const char *logFile)
 {		
 	//seed random number generator
 	srand( (unsigned int) time(0) );
@@ -35,7 +35,12 @@ void example_nn(const char *inputFile, const char *outputFile)
 	neuralNetworkTrainer nT( &nn );
 	nT.setTrainingParameters(0.001, 0.9, false);
 	nT.setStoppingConditions(1000, 95);
-	nT.enableLogging("log.csv", 5);
+    
+    if (logFile != NULL) {
+    
+        nT.enableLogging(logFile, 5);
+    }
+	
 	
 	//train neural network on data sets
 	for (int i=0; i < d.getNumTrainingSets(); i++ )
