@@ -48,12 +48,12 @@ private:
 	double desiredAccuracy;
 	
 	//change to weights
-	double** deltaInputHidden;
-	double** deltaHiddenOutput;
+	double** delta01;
+	double** delta12;
 
 	//error gradients
-	double* hiddenErrorGradients;
-	double* outputErrorGradients;
+	double* errorGradients01;
+	double* errorGradients12;
 
 	//accuracy stats per epoch
 	double trainingSetAccuracy;
@@ -91,8 +91,7 @@ public:
 	//private methods
 	//--------------------------------------------------------------------------------------------
 private:
-	inline double getOutputErrorGradient( double desiredValue, double outputValue );
-	double getHiddenErrorGradient( int j );
+
 	void runTrainingEpoch( std::vector<dataEntry*> trainingSet );
 	void backpropagate(double* desiredOutputs);
 	void updateWeights();

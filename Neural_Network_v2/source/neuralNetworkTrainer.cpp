@@ -30,24 +30,25 @@ neuralNetworkTrainer::neuralNetworkTrainer( neuralNetwork *nn )	:	NN(nn),
     
 	//create delta lists
 	//--------------------------------------------------------------------------------------------------------
-	deltaInputHidden = new double*[NN->_neuronsPerLayer[0] + 1] ;
+	delta01 = new double*[NN->_neuronsPerLayer[0] + 1] ;
 	for ( int i=0; i <= NN->_neuronsPerLayer[0]; i++ ) 
 	{
-		deltaInputHidden[i] = new double[NN->_neuronsPerLayer[1]];
-		for ( int j=0; j < NN->_neuronsPerLayer[1]; j++ ) deltaInputHidden[i][j] = 0;		
+		delta01[i] = new double[NN->_neuronsPerLayer[1]];
+		for ( int j=0; j < NN->_neuronsPerLayer[1]; j++ ) delta01[i][j] = 0;
 	}
 
-	deltaHiddenOutput = new double*[NN->_neuronsPerLayer[1] + 1] ;
+	delta12 = new double*[NN->_neuronsPerLayer[1] + 1] ;
 	for ( int i=0; i <= NN->_neuronsPerLayer[1]; i++ ) 
 	{
-		deltaHiddenOutput[i] = new double[NN->_neuronsPerLayer[2]];			
-		for ( int j=0; j < NN->_neuronsPerLayer[2]; j++ ) deltaHiddenOutput[i][j] = 0;		
+		delta12[i] = new double[NN->_neuronsPerLayer[2]];			
+		for ( int j=0; j < NN->_neuronsPerLayer[2]; j++ ) delta12[i][j] = 0;
 	}
 
 	//create error gradient storage
 	//--------------------------------------------------------------------------------------------------------
-	hiddenErrorGradients = new double[NN->_neuronsPerLayer[1] + 1];
-	outputErrorGradients = new double[NN->_neuronsPerLayer[2] + 1];
+	errorGradients01 = new double[NN->_neuronsPerLayer[1] + 1];
+	errorGradients12 = new double[NN->_neuronsPerLayer[2] + 1];
+    
     initializeWeights();
     
 }
@@ -196,21 +197,23 @@ void neuralNetworkTrainer::backpropagate( double* desiredOutputs )
 	for (int k = 0; k < NN->_neuronsPerLayer[2]; k++)
 	{
 		//get error gradient for every output node
-		outputErrorGradients[k] = getOutputErrorGradient( desiredOutputs[k], NN->neurons[2][k] );
+        
+        double outputValue = NN->neurons[2][k];
+		errorGradients12[k] = outputValue * ( 1 - outputValue ) * ( desiredOutputs[k] - outputValue );
 		
 		//for all nodes in hidden layer and bias neuron
 		for (int j = 0; j <= NN->_neuronsPerLayer[1]; j++) 
 		{
-            double ddd = learningRate * NN->neurons[1][j] * outputErrorGradients[k];
+            double ddd = learningRate * NN->neurons[1][j] * errorGradients12[k];
             
 			//calculate change in weight
             if ( !useBatch ){
             
-                deltaHiddenOutput[j][k] = ddd  + momentum * deltaHiddenOutput[j][k];
+                delta12[j][k] = ddd  + momentum * delta12[j][k];
             }
             else {
             
-                deltaHiddenOutput[j][k] += ddd;
+                delta12[j][k] += ddd;
             }
 		}
 	}
@@ -219,50 +222,39 @@ void neuralNetworkTrainer::backpropagate( double* desiredOutputs )
 	//--------------------------------------------------------------------------------------------------------
 	for (int j = 0; j < NN->_neuronsPerLayer[1]; j++)
 	{
+        
 		//get error gradient for every hidden node
-		hiddenErrorGradients[j] = getHiddenErrorGradient( j );
+
+        //get sum of hidden->output weights * output error gradients
+        double weightedSum = 0;
+        
+        double *w       = NN->weights[1][j];
+        double value    = NN->neurons[1][j];
+        
+        for( int k = 0; k < NN->_neuronsPerLayer[2]; k++ ){
+        
+            weightedSum += w[k] * errorGradients12[k];
+        }
+        
+        
+        errorGradients01[j] = value * ( 1 - value ) * weightedSum;
 
 		//for all nodes in input layer and bias neuron
 		for (int i = 0; i <= NN->_neuronsPerLayer[0]; i++)
 		{
             
-            double ddd = learningRate * NN->neurons[0][i] * hiddenErrorGradients[j];
+            double ddd = learningRate * NN->neurons[0][i] * errorGradients01[j];
             
 			//calculate change in weight 
 			if ( !useBatch )
-                deltaInputHidden[i][j] = ddd + momentum * deltaInputHidden[i][j];
+                delta01[i][j] = ddd + momentum * delta01[i][j];
 			else
-                deltaInputHidden[i][j] += ddd;
+                delta01[i][j] += ddd;
 		}
 	}
 	
 	//if using stochastic learning update the weights immediately
 	if ( !useBatch ) updateWeights();
-}
-
-
-/*******************************************************************
- * calculate output error gradient
- ********************************************************************/
-inline double neuralNetworkTrainer::getOutputErrorGradient( double desiredValue, double outputValue)
-{
-    //return error gradient
-    return outputValue * ( 1 - outputValue ) * ( desiredValue - outputValue );
-}
-
-/*******************************************************************
- * calculate input error gradient
- ********************************************************************/
-double neuralNetworkTrainer::getHiddenErrorGradient( int j )
-{
-    //get sum of hidden->output weights * output error gradients
-    double weightedSum = 0;
-    
-    for( int k = 0; k < NN->_neuronsPerLayer[2]; k++ )
-        weightedSum += NN->weights[1][j][k] * outputErrorGradients[k];
-    
-    //return error gradient
-    return NN->neurons[1][j] * ( 1 - NN->neurons[1][j] ) * weightedSum;
 }
 
 
@@ -273,33 +265,31 @@ void neuralNetworkTrainer::updateWeights()
 {
 	//input -> hidden weights
 	//--------------------------------------------------------------------------------------------------------
-	for (int i = 0; i <= NN->_neuronsPerLayer[0]; i++)
-	{
-		for (int j = 0; j < NN->_neuronsPerLayer[1]; j++) 
-		{
-			//update weight
-			NN->weights[0][i][j] += deltaInputHidden[i][j];	
-			
-			//clear delta only if using batch (previous delta is needed for momentum
-			if (useBatch)
-                deltaInputHidden[i][j] = 0;
-		}
-	}
-	
-	//hidden -> output weights
-	//--------------------------------------------------------------------------------------------------------
-	for (int j = 0; j <= NN->_neuronsPerLayer[1]; j++)
-	{
-		for (int k = 0; k < NN->_neuronsPerLayer[2]; k++) 
-		{					
-			//update weight
-			NN->weights[1][j][k] += deltaHiddenOutput[j][k];
-			
-			//clear delta only if using batch (previous delta is needed for momentum)
-			if (useBatch)
-                deltaHiddenOutput[j][k] = 0;
-		}
-	}
+
+    
+    for (int iL = 0; iL < NN->_layerCount - 1; iL++) {
+    
+        int c0 = NN->_neuronsPerLayer[iL];
+        int c1 = NN->_neuronsPerLayer[iL+1];
+        
+        double **deltas = (iL == 0) ? delta01 : delta12;
+    
+        for (int i = 0; i <= c0; i++)
+        {
+            double *w = NN->weights[iL][i];
+            
+            for (int j = 0; j < c1; j++)
+            {
+                //update weight
+                w[j] += deltas[i][j];
+                
+                //clear delta only if using batch (previous delta is needed for momentum
+                if (useBatch)
+                    deltas[i][j] = 0;
+            }
+        }
+        
+    }
 }
 
 
@@ -379,10 +369,12 @@ void neuralNetworkTrainer::initializeWeights()
         //--------------------------------------------------------------------------------------------------------
         for(int i = 0; i <= NN->_neuronsPerLayer[iL0]; i++)
         {
+            double *w = NN->weights[iL0][i];
+            
             for(int j = 0; j < NN->_neuronsPerLayer[iL1]; j++)
             {
                 //set weights to random values
-                NN->weights[iL0][i][j] = ( ( (double)(rand()%100)+1)/100  * 2 * r ) - r;
+                w[j] = ( ( (double)(rand()%100)+1)/100  * 2 * r ) - r;
             }
         }
     }
