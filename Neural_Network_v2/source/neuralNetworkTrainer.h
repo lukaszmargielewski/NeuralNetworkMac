@@ -71,6 +71,10 @@ private:
 	std::fstream logFile;
 	int logResolution;
 	int lastEpochLogged;
+    
+    double *outputLayer;
+    uint   outputLayerCount;
+    
 
 	//public methods
 	//--------------------------------------------------------------------------------------------

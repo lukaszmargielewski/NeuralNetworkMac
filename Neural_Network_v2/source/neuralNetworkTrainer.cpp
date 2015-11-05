@@ -25,6 +25,9 @@ neuralNetworkTrainer::neuralNetworkTrainer( neuralNetwork *nn )	:	NN(nn),
 																	validationSetMSE(0),
 																	generalizationSetMSE(0)																	
 {
+    
+    outputLayer = NN->getOutputLayer(&outputLayerCount);
+    
 	//create delta lists
 	//--------------------------------------------------------------------------------------------------------
 	deltaInputHidden = new double*[NN->_neuronsPerLayer[0] + 1] ;
@@ -43,12 +46,8 @@ neuralNetworkTrainer::neuralNetworkTrainer( neuralNetwork *nn )	:	NN(nn),
 
 	//create error gradient storage
 	//--------------------------------------------------------------------------------------------------------
-	hiddenErrorGradients = new double[NN->_neuronsPerLayer[1] + 1] ;
-	for ( int i=0; i <= NN->_neuronsPerLayer[1]; i++ ) hiddenErrorGradients[i] = 0;
-	
-	outputErrorGradients = new double[NN->_neuronsPerLayer[2] + 1] ;
-	for ( int i=0; i <= NN->_neuronsPerLayer[2]; i++ ) outputErrorGradients[i] = 0;
-    
+	hiddenErrorGradients = new double[NN->_neuronsPerLayer[1] + 1];
+	outputErrorGradients = new double[NN->_neuronsPerLayer[2] + 1];
     initializeWeights();
     
 }
@@ -71,51 +70,10 @@ void neuralNetworkTrainer::setStoppingConditions( int mEpochs, double dAccuracy 
 	maxEpochs = mEpochs;
 	desiredAccuracy = dAccuracy;	
 }
-/*******************************************************************
-* Enable training logging
-********************************************************************/
-void neuralNetworkTrainer::enableLogging(const char* filename, int resolution = 1)
-{
-	//create log file 
-	if ( ! logFile.is_open() )
-	{
-		logFile.open(filename, ios::out);
 
-		if ( logFile.is_open() )
-		{
-			//write log file header
-			logFile << "Epoch,Training Set Accuracy, Generalization Set Accuracy,Training Set MSE, Generalization Set MSE" << endl;
-			
-			//enable logging
-			loggingEnabled = true;
-			
-			//resolution setting;
-			logResolution = resolution;
-			lastEpochLogged = -resolution;
-		}
-	}
-}
-/*******************************************************************
-* calculate output error gradient
-********************************************************************/
-inline double neuralNetworkTrainer::getOutputErrorGradient( double desiredValue, double outputValue)
-{
-	//return error gradient
-	return outputValue * ( 1 - outputValue ) * ( desiredValue - outputValue );
-}
 
-/*******************************************************************
-* calculate input error gradient
-********************************************************************/
-double neuralNetworkTrainer::getHiddenErrorGradient( int j )
-{
-	//get sum of hidden->output weights * output error gradients
-	double weightedSum = 0;
-	for( int k = 0; k < NN->_neuronsPerLayer[2]; k++ ) weightedSum += NN->weights[1][j][k] * outputErrorGradients[k];
 
-	//return error gradient
-	return NN->neurons[1][j] * ( 1 - NN->neurons[1][j] ) * weightedSum;
-}
+
 /*******************************************************************
 * Train the NN using gradient descent
 ********************************************************************/
@@ -179,6 +137,8 @@ void neuralNetworkTrainer::trainNetwork( trainingDataSet* tSet )
 	cout << " Validation Set Accuracy: " << validationSetAccuracy << endl;
 	cout << " Validation Set MSE: " << validationSetMSE << endl << endl;
 }
+
+
 /*******************************************************************
 * Run a single training epoch
 ********************************************************************/
@@ -199,13 +159,13 @@ void neuralNetworkTrainer::runTrainingEpoch( vector<dataEntry*> trainingSet )
 		bool patternCorrect = true;
 
 		//check all outputs from neural network against desired values
-		for ( int k = 0; k < NN->_neuronsPerLayer[2]; k++ )
+		for ( int k = 0; k < outputLayerCount; k++ )
 		{					
 			//pattern incorrect if desired and output differ
-			if (clampOutput( NN->neurons[2][k] ) != trainingSet[tp]->target[k] ) patternCorrect = false;
+			if (clampOutput( outputLayer[k] ) != trainingSet[tp]->target[k] ) patternCorrect = false;
 			
 			//calculate MSE
-			mse += pow(( NN->neurons[2][k] - trainingSet[tp]->target[k] ), 2);
+			mse += pow(( outputLayer[k] - trainingSet[tp]->target[k] ), 2);
 		}
 		
 		//if pattern is incorrect add to incorrect count
@@ -213,13 +173,19 @@ void neuralNetworkTrainer::runTrainingEpoch( vector<dataEntry*> trainingSet )
 		
 	}//end for
 
+    
 	//if using batch learning - update the weights
-	if ( useBatch ) updateWeights();
+	if ( useBatch )
+        updateWeights();
 	
 	//update training accuracy and MSE
 	trainingSetAccuracy = 100 - (incorrectPatterns/trainingSet.size() * 100);
 	trainingSetMSE = mse / ( NN->_neuronsPerLayer[2] * trainingSet.size() );
 }
+
+
+
+
 /*******************************************************************
 * Propagate errors back through NN and calculate delta values
 ********************************************************************/
@@ -234,10 +200,18 @@ void neuralNetworkTrainer::backpropagate( double* desiredOutputs )
 		
 		//for all nodes in hidden layer and bias neuron
 		for (int j = 0; j <= NN->_neuronsPerLayer[1]; j++) 
-		{				
+		{
+            double ddd = learningRate * NN->neurons[1][j] * outputErrorGradients[k];
+            
 			//calculate change in weight
-			if ( !useBatch ) deltaHiddenOutput[j][k] = learningRate * NN->neurons[1][j] * outputErrorGradients[k] + momentum * deltaHiddenOutput[j][k];
-			else deltaHiddenOutput[j][k] += learningRate * NN->neurons[1][j] * outputErrorGradients[k];
+            if ( !useBatch ){
+            
+                deltaHiddenOutput[j][k] = ddd  + momentum * deltaHiddenOutput[j][k];
+            }
+            else {
+            
+                deltaHiddenOutput[j][k] += ddd;
+            }
 		}
 	}
 
@@ -251,10 +225,14 @@ void neuralNetworkTrainer::backpropagate( double* desiredOutputs )
 		//for all nodes in input layer and bias neuron
 		for (int i = 0; i <= NN->_neuronsPerLayer[0]; i++)
 		{
+            
+            double ddd = learningRate * NN->neurons[0][i] * hiddenErrorGradients[j];
+            
 			//calculate change in weight 
-			if ( !useBatch ) deltaInputHidden[i][j] = learningRate * NN->neurons[0][i] * hiddenErrorGradients[j] + momentum * deltaInputHidden[i][j];
-			else deltaInputHidden[i][j] += learningRate * NN->neurons[0][i] * hiddenErrorGradients[j]; 
-
+			if ( !useBatch )
+                deltaInputHidden[i][j] = ddd + momentum * deltaInputHidden[i][j];
+			else
+                deltaInputHidden[i][j] += ddd;
 		}
 	}
 	
@@ -262,6 +240,30 @@ void neuralNetworkTrainer::backpropagate( double* desiredOutputs )
 	if ( !useBatch ) updateWeights();
 }
 
+
+/*******************************************************************
+ * calculate output error gradient
+ ********************************************************************/
+inline double neuralNetworkTrainer::getOutputErrorGradient( double desiredValue, double outputValue)
+{
+    //return error gradient
+    return outputValue * ( 1 - outputValue ) * ( desiredValue - outputValue );
+}
+
+/*******************************************************************
+ * calculate input error gradient
+ ********************************************************************/
+double neuralNetworkTrainer::getHiddenErrorGradient( int j )
+{
+    //get sum of hidden->output weights * output error gradients
+    double weightedSum = 0;
+    
+    for( int k = 0; k < NN->_neuronsPerLayer[2]; k++ )
+        weightedSum += NN->weights[1][j][k] * outputErrorGradients[k];
+    
+    //return error gradient
+    return NN->neurons[1][j] * ( 1 - NN->neurons[1][j] ) * weightedSum;
+}
 
 
 /*******************************************************************
@@ -279,7 +281,8 @@ void neuralNetworkTrainer::updateWeights()
 			NN->weights[0][i][j] += deltaInputHidden[i][j];	
 			
 			//clear delta only if using batch (previous delta is needed for momentum
-			if (useBatch) deltaInputHidden[i][j] = 0;				
+			if (useBatch)
+                deltaInputHidden[i][j] = 0;
 		}
 	}
 	
@@ -293,7 +296,8 @@ void neuralNetworkTrainer::updateWeights()
 			NN->weights[1][j][k] += deltaHiddenOutput[j][k];
 			
 			//clear delta only if using batch (previous delta is needed for momentum)
-			if (useBatch)deltaHiddenOutput[j][k] = 0;
+			if (useBatch)
+                deltaHiddenOutput[j][k] = 0;
 		}
 	}
 }
@@ -316,10 +320,10 @@ double neuralNetworkTrainer::getSetAccuracy( std::vector<dataEntry*>& set )
         bool correctResult = true;
         
         //check all outputs against desired output values
-        for ( int k = 0; k < NN->_neuronsPerLayer[2]; k++ )
+        for ( int k = 0; k < outputLayerCount; k++ )
         {
             //set flag to false if desired and output differ
-            if ( clampOutput(NN->neurons[2][k]) != set[tp]->target[k] ) correctResult = false;
+            if ( clampOutput(outputLayer[k]) != set[tp]->target[k] ) correctResult = false;
         }
         
         //inc training error for a incorrect result
@@ -346,16 +350,16 @@ double neuralNetworkTrainer::getSetMSE( std::vector<dataEntry*>& set )
         NN->feedForward( set[tp]->pattern );
         
         //check all outputs against desired output values
-        for ( int k = 0; k < NN->_neuronsPerLayer[2]; k++ )
+        for ( int k = 0; k < outputLayerCount; k++ )
         {
             //sum all the MSEs together
-            mse += pow((NN->neurons[2][k] - set[tp]->target[k]), 2);
+            mse += pow((outputLayer[k] - set[tp]->target[k]), 2);
         }
         
     }//end for
     
     //calculate error and return as percentage
-    return mse/(NN->_neuronsPerLayer[2] * set.size());
+    return mse/(outputLayerCount * set.size());
 }
 
 
@@ -364,33 +368,25 @@ double neuralNetworkTrainer::getSetMSE( std::vector<dataEntry*>& set )
  ********************************************************************/
 void neuralNetworkTrainer::initializeWeights()
 {
-    //set range
-    double rH = 1/sqrt( (double) NN->_neuronsPerLayer[0]);
-    double rO = 1/sqrt( (double) NN->_neuronsPerLayer[1]);
     
-    //set weights between input and hidden
-    //--------------------------------------------------------------------------------------------------------
-    for(int i = 0; i <= NN->_neuronsPerLayer[0]; i++)
-    {
-        for(int j = 0; j < NN->_neuronsPerLayer[1]; j++)
+    for (int iL0 = 0; iL0 < NN->_layerCount - 1; iL0++) {
+        int iL1 = iL0 + 1;
+
+        //set range
+        double r = 1/sqrt( (double) NN->_neuronsPerLayer[iL0]);
+        
+        //set weights between input and hidden
+        //--------------------------------------------------------------------------------------------------------
+        for(int i = 0; i <= NN->_neuronsPerLayer[iL0]; i++)
         {
-            //set weights to random values
-            NN->weights[0][i][j] = ( ( (double)(rand()%100)+1)/100  * 2 * rH ) - rH;
-        }
-    }
-    
-    //set weights between input and hidden
-    //--------------------------------------------------------------------------------------------------------
-    for(int i = 0; i <= NN->_neuronsPerLayer[1]; i++)
-    {
-        for(int j = 0; j < NN->_neuronsPerLayer[2]; j++)
-        {
-            //set weights to random values
-            NN->weights[1][i][j] = ( ( (double)(rand()%100)+1)/100 * 2 * rO ) - rO;
+            for(int j = 0; j < NN->_neuronsPerLayer[iL1]; j++)
+            {
+                //set weights to random values
+                NN->weights[iL0][i][j] = ( ( (double)(rand()%100)+1)/100  * 2 * r ) - r;
+            }
         }
     }
 }
-
 
 
 /*******************************************************************
@@ -401,5 +397,30 @@ inline int neuralNetworkTrainer::clampOutput( double x )
     if ( x < 0.1 ) return 0;
     else if ( x > 0.9 ) return 1;
     else return -1;
+}
+
+/*******************************************************************
+ * Enable training logging
+ ********************************************************************/
+void neuralNetworkTrainer::enableLogging(const char* filename, int resolution = 1)
+{
+    //create log file
+    if ( ! logFile.is_open() )
+    {
+        logFile.open(filename, ios::out);
+        
+        if ( logFile.is_open() )
+        {
+            //write log file header
+            logFile << "Epoch,Training Set Accuracy, Generalization Set Accuracy,Training Set MSE, Generalization Set MSE" << endl;
+            
+            //enable logging
+            loggingEnabled = true;
+            
+            //resolution setting;
+            logResolution = resolution;
+            lastEpochLogged = -resolution;
+        }
+    }
 }
 

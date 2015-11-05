@@ -106,11 +106,13 @@ neuralNetwork::~neuralNetwork(){
 
 double* neuralNetwork::getInputLayer(uint *count){
 
+    *count = _neuronsPerLayer[0];
     return neurons[0];
     
 }
 double* neuralNetwork::getOutputLayer(uint *count){
 
+    *count = _neuronsPerLayer[2];
     return neurons[_layerCount-1];
 
 }
