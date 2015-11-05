@@ -101,8 +101,13 @@ void neuralNetwork::feedForward(double* pattern)
         hiddenNeurons[j] = 0;
         
         //get weighted sum of pattern and bias neuron
-        for( int i=0; i <= nInput; i++ )
-            hiddenNeurons[j] += inputNeurons[i] * wInputHidden[i][j];
+        for( int i=0; i <= nInput; i++ ){
+        
+            double ini = inputNeurons[i];
+            double wIHij = wInputHidden[i][j];
+            
+            hiddenNeurons[j] += ini * wIHij;
+        }
         
         //set to result of sigmoid
         hiddenNeurons[j] = activationFunction( hiddenNeurons[j] );
@@ -116,8 +121,13 @@ void neuralNetwork::feedForward(double* pattern)
         outputNeurons[k] = 0;
         
         //get weighted sum of pattern and bias neuron
-        for( int j=0; j <= nHidden; j++ )
-            outputNeurons[k] += hiddenNeurons[j] * wHiddenOutput[j][k];
+        for( int j=0; j <= nHidden; j++ ){
+        
+            double hnj = hiddenNeurons[j];
+            double wHOjk = wHiddenOutput[j][k];
+            outputNeurons[k] += hnj * wHOjk;
+
+        }
         
         //set to result of sigmoid
         outputNeurons[k] = activationFunction( outputNeurons[k] );
