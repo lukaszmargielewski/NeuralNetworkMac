@@ -34,7 +34,7 @@ void example_nn(const char *inputFile, const char *outputFile)
 	//create neural network trainer
 	neuralNetworkTrainer nT( &nn );
 	nT.setTrainingParameters(0.001, 0.9, false);
-	nT.setStoppingConditions(150, 90);
+	nT.setStoppingConditions(1000, 95);
 	nT.enableLogging("log.csv", 5);
 	
 	//train neural network on data sets
@@ -45,4 +45,8 @@ void example_nn(const char *inputFile, const char *outputFile)
 
 	//save the weights
 	nn.saveWeights(outputFile);
+    
+    printf("\n Average feed forward      time: %fsec (run count: %llu)", nn.averageFeedForwardTime(), nn.feedForwardCount());
+    printf("\n Average input layer load  time: %fsec (run count: %llu)", nn.averageFeedForwardTime(), nn.feedForwardCount());
+
 }

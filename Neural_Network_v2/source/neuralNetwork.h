@@ -27,7 +27,12 @@ private:
 	//weights
 	double** wInputHidden;
 	double** wHiddenOutput;
-		
+	
+    //stats:
+    uint64_t runCount;
+    uint64_t totalFeedForwardTime;
+    uint64_t totalInputLayerLoadTime;
+    
 	//Friends
 	//--------------------------------------------------------------------------------------------
 	friend neuralNetworkTrainer;
@@ -47,6 +52,10 @@ public:
     bool loadWeights(const char* inputFilename);
     bool saveWeights(const char* outputFilename);
 
+    double averageFeedForwardTime();
+    double averageInputLayerLoadTime();
+    uint64_t feedForwardCount();
+    
 	//private methods
 	//--------------------------------------------------------------------------------------------
 
