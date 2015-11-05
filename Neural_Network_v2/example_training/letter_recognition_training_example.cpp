@@ -45,7 +45,4 @@ void example_nn(const char *inputFile, const char *outputFile)
 
 	//save the weights
 	nn.saveWeights(outputFile);
-		
-	cout << endl << endl << "-- END OF PROGRAM --" << endl;
-	char c; cin >> c;
 }
