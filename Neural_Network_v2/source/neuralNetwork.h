@@ -20,22 +20,8 @@ private:
 	uint nLayers;
     uint *nNeuronsPerLayer;
     
-	//neurons
-	double** neurons;
-	//weights
-	double*** weights;
-    
-    uint nInput;
-    uint nHidden;
-    uint nOutput;
-    
-    double* inputNeurons;
-    double* hiddenNeurons;
-    double* outputNeurons;
-    
-    double** wInputHidden;
-    double** wHiddenOutput;
-    
+    double** neurons;
+    double*** weights;
     
     //stats:
     uint64_t runCount;

@@ -36,7 +36,7 @@ void example_nn(const char *inputFile, const char *outputFile, const char *logFi
 	//create neural network trainer
 	neuralNetworkTrainer nT( &nn );
 	nT.setTrainingParameters(0.001, 0.9, false);
-	nT.setStoppingConditions(1000, 95);
+	nT.setStoppingConditions(300, 95);
     
     if (logFile != NULL) {
     
