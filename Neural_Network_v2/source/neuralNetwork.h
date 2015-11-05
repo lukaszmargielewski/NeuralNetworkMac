@@ -17,17 +17,26 @@ class neuralNetwork
 private:
 
 	//number of neurons
-	int nInput, nHidden, nOutput;
-	
+	uint nLayers;
+    uint *nNeuronsPerLayer;
+    
 	//neurons
-	double* inputNeurons;
-	double* hiddenNeurons;
-	double* outputNeurons;
-
+	double** neurons;
 	//weights
-	double** wInputHidden;
-	double** wHiddenOutput;
-	
+	double*** weights;
+    
+    uint nInput;
+    uint nHidden;
+    uint nOutput;
+    
+    double* inputNeurons;
+    double* hiddenNeurons;
+    double* outputNeurons;
+    
+    double** wInputHidden;
+    double** wHiddenOutput;
+    
+    
     //stats:
     uint64_t runCount;
     uint64_t totalFeedForwardTime;
@@ -43,7 +52,7 @@ private:
 public:
 
 	//constructor & destructor
-	neuralNetwork(int numInput, int numHidden, int numOutput);
+    neuralNetwork(uint numberOfLayers, uint* neuronsInLayer);
 	~neuralNetwork();
     
 	double* feedForwardPattern( double* pattern );

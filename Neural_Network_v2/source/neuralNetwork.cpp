@@ -20,45 +20,81 @@ static double MachTimeToSecs(uint64_t time);
 /*******************************************************************
 * Constructor
 ********************************************************************/
-neuralNetwork::neuralNetwork(int nI, int nH, int nO) : nInput(nI), nHidden(nH), nOutput(nO)
-{				
-	//create neuron lists
-	//--------------------------------------------------------------------------------------------------------
+neuralNetwork::neuralNetwork(uint numberOfLayers, uint* neuronsInLayer) : nLayers(numberOfLayers)
+{
+    
+    nNeuronsPerLayer = (uint *)malloc(sizeof(uint) * nLayers);
+    
+    neurons = (double **)malloc(MEMORY_ALIGNED_BYTES(sizeof(double *) * nLayers));
+    weights = (double ***)malloc(MEMORY_ALIGNED_BYTES(sizeof(double **) * nLayers - 1));
+    
+    
+    for (uint iLayer = 0; iLayer < nLayers; iLayer++ ){
+    
+        uint layerSize = neuronsInLayer[iLayer];
+        nNeuronsPerLayer[iLayer] = layerSize;
+        bool isLastLayer = (iLayer == (nLayers - 1)) ? true : false;
+        
+        
+        // Neurons & Weights:
+        // Note: last layer (output) does not have a bias!
+        
+        uint neuronsCount = isLastLayer ? layerSize : layerSize + 1;
+        uint layerBytes = MEMORY_ALIGNED_BYTES((neuronsCount) * sizeof(double));
 
-    uint nInputBytes = MEMORY_ALIGNED_BYTES((nInput + 1) * sizeof(double));
-    uint nHiddenBytes = MEMORY_ALIGNED_BYTES((nHidden + 1) * sizeof(double));
-    uint nOutputBytes = MEMORY_ALIGNED_BYTES((nOutput) * sizeof(double));
-    
-    /*
-    posix_memalign((void *)inputNeurons, MEMORY_ALIGNMENT, bytes);
-    */
-    
-    inputNeurons    = (double *)malloc(nInputBytes);
-    hiddenNeurons   = (double *)malloc(nHiddenBytes);
-    outputNeurons   = (double *)malloc(nOutputBytes);;
-    
-	//create bias neurons
-	inputNeurons[nInput] = -1;
-	hiddenNeurons[nHidden] = -1;
+        neurons[iLayer] = (double *)malloc(layerBytes);
 
-    
-	//create weight lists (include bias neuron weights)
-	//--------------------------------------------------------------------------------------------------------
-	
-    wInputHidden = (double **)malloc(sizeof(double *) * (nInput + 1));
-    
-    for ( int i=0; i <= nInput; i++ )
-		wInputHidden[i] = (double *)malloc((nHidden) * sizeof(double));
+        printf("\n %i / %i layer. size: %i, neurons count %i, is last: %i", iLayer, nLayers, layerSize, neuronsCount, isLastLayer);
+        // Bias neuron:
+        if (isLastLayer == false){
+        
+            neurons[iLayer][neuronsCount] = -1;
+            
+            weights[iLayer] = (double **)malloc(layerBytes);
+            
+            for ( int i = 0; i < neuronsCount; i++ ){
+                
+                uint layerSizeNext = neuronsInLayer[iLayer+1];
+                uint layerBytesNext = MEMORY_ALIGNED_BYTES((layerSizeNext+1) * sizeof(double));
+                
+                weights[iLayer][i] = (double *)malloc(layerBytesNext);
+            }
+         
+            /*
+             Replacement for:
+             
+             wInputHidden  = (double **)malloc(sizeof(double *) * (nInput + 1));
+             wHiddenOutput = (double **)malloc(sizeof(double *) * (nHidden + 1));
 
-    
-    wHiddenOutput = (double **)malloc(sizeof(double *) * (nHidden + 1));
-    
-	for ( int i=0; i <= nHidden; i++ )
-        wHiddenOutput[i] = (double *)malloc((nOutput) * sizeof(double));
+             for ( int i=0; i <= nInput; i++ )
+             wInputHidden[i] = (double *)malloc((nHidden) * sizeof(double));
+             
+             
+             
+             for ( int i=0; i <= nHidden; i++ )
+             wHiddenOutput[i] = (double *)malloc((nOutput) * sizeof(double));
+             
+             */
+        }
+        
+    }
+
     
     runCount = 0;
     totalInputLayerLoadTime = totalFeedForwardTime = 0;
 
+    
+    nInput  = nNeuronsPerLayer[0];
+    nHidden = nNeuronsPerLayer[1];
+    nOutput = nNeuronsPerLayer[2];
+    
+    inputNeurons = neurons[0];
+    hiddenNeurons = neurons[1];
+    outputNeurons = neurons[2];
+    
+    wInputHidden = weights[0];
+    wHiddenOutput = weights[1];
+    
 }
 
 /*******************************************************************
@@ -67,17 +103,28 @@ neuralNetwork::neuralNetwork(int nI, int nH, int nO) : nInput(nI), nHidden(nH), 
 neuralNetwork::~neuralNetwork()
 {
 	//delete neurons
-	free(inputNeurons);
-	free(hiddenNeurons);
-	free(outputNeurons);
-
-	//delete weight storage
-	for (int i=0; i <= nInput; i++)free(wInputHidden[i]);
+    for (int iLayer=0; iLayer < nLayers; iLayer++){
     
-	free(wInputHidden);
+        free(neurons[iLayer]);
+    }
+    
+    free(neurons);
 
-	for (int j=0; j <= nHidden; j++)free(wHiddenOutput[j]);
-	free(wHiddenOutput);
+    for (int iLayer=0; iLayer < nLayers-1; iLayer++){
+    
+        double** wHiddenOutput = weights[iLayer];
+        
+        uint weightsCount = nNeuronsPerLayer[iLayer] + 1;
+        
+        for (int j=0; j < weightsCount; j++)
+        {
+            free(wHiddenOutput[j]);
+        }
+        
+        free(wHiddenOutput);
+    }
+	
+    free(weights);
 }
 
 /*******************************************************************
@@ -86,7 +133,7 @@ neuralNetwork::~neuralNetwork()
 double* neuralNetwork::feedForwardPattern(double *pattern)
 {
     feedForward(pattern);
-    return outputNeurons;
+    return neurons[nLayers-1];
 }
 
 

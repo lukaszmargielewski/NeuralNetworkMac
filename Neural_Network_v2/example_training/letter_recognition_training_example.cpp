@@ -29,7 +29,9 @@ void example_nn(const char *inputFile, const char *outputFile, const char *logFi
 	d.setCreationApproach( STATIC, 10 );	
 
 	//create neural network
-	neuralNetwork nn(16,10,3);
+    uint layerSizes[3] = {16, 10, 3};
+    
+	neuralNetwork nn(3, layerSizes);
 
 	//create neural network trainer
 	neuralNetworkTrainer nT( &nn );
