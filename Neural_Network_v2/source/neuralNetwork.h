@@ -17,8 +17,8 @@ class neuralNetwork
 private:
 
 	//number of neurons
-	uint nLayers;
-    uint *nNeuronsPerLayer;
+    uint _layerCount;
+    uint *_neuronsPerLayer;
     
     double** neurons;
     double*** weights;

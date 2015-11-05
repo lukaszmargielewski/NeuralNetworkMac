@@ -20,20 +20,20 @@ static double MachTimeToSecs(uint64_t time);
 /*******************************************************************
 * Constructor
 ********************************************************************/
-neuralNetwork::neuralNetwork(uint numberOfLayers, uint* neuronsInLayer) : nLayers(numberOfLayers)
+neuralNetwork::neuralNetwork(uint numberOfLayers, uint* neuronsInLayer) : _layerCount(numberOfLayers)
 {
     
-    nNeuronsPerLayer = (uint *)malloc(sizeof(uint) * nLayers);
+    _neuronsPerLayer = (uint *)malloc(sizeof(uint) * _layerCount);
     
-    neurons = (double **)malloc(MEMORY_ALIGNED_BYTES(sizeof(double *) * nLayers));
-    weights = (double ***)malloc(MEMORY_ALIGNED_BYTES(sizeof(double **) * nLayers - 1));
+    neurons = (double **)malloc(MEMORY_ALIGNED_BYTES(sizeof(double *) * _layerCount));
+    weights = (double ***)malloc(MEMORY_ALIGNED_BYTES(sizeof(double **) * _layerCount - 1));
     
     
-    for (uint iLayer = 0; iLayer < nLayers; iLayer++ ){
+    for (uint iLayer = 0; iLayer < _layerCount; iLayer++ ){
     
         uint layerSize = neuronsInLayer[iLayer];
-        nNeuronsPerLayer[iLayer] = layerSize;
-        bool isLastLayer = (iLayer == (nLayers - 1)) ? true : false;
+        _neuronsPerLayer[iLayer] = layerSize;
+        bool isLastLayer = (iLayer == (_layerCount - 1)) ? true : false;
         
         
         // Neurons & Weights:
@@ -44,7 +44,7 @@ neuralNetwork::neuralNetwork(uint numberOfLayers, uint* neuronsInLayer) : nLayer
 
         neurons[iLayer] = (double *)malloc(layerBytes);
 
-        printf("\n %i / %i layer. size: %i, neurons count %i, is last: %i", iLayer, nLayers, layerSize, neuronsCount, isLastLayer);
+        printf("\n %i / %i layer. size: %i, neurons count %i, is last: %i", iLayer, _layerCount, layerSize, neuronsCount, isLastLayer);
         // Bias neuron:
         if (isLastLayer == false){
         
@@ -75,18 +75,18 @@ neuralNetwork::neuralNetwork(uint numberOfLayers, uint* neuronsInLayer) : nLayer
 neuralNetwork::~neuralNetwork()
 {
 	//delete neurons
-    for (int iLayer=0; iLayer < nLayers; iLayer++){
+    for (int iLayer=0; iLayer < _layerCount; iLayer++){
     
         free(neurons[iLayer]);
     }
     
     free(neurons);
 
-    for (int iLayer=0; iLayer < nLayers-1; iLayer++){
+    for (int iLayer=0; iLayer < _layerCount-1; iLayer++){
     
         double** wi = weights[iLayer];
         
-        uint weightsCount = nNeuronsPerLayer[iLayer] + 1;
+        uint weightsCount = _neuronsPerLayer[iLayer] + 1;
         
         for (int j=0; j < weightsCount; j++)
         {
@@ -105,7 +105,7 @@ neuralNetwork::~neuralNetwork()
 double* neuralNetwork::feedForwardPattern(double *pattern)
 {
     feedForward(pattern);
-    return neurons[nLayers-1];
+    return neurons[_layerCount-1];
 }
 
 
@@ -116,15 +116,15 @@ void neuralNetwork::feedForward(double* pattern)
 {
     uint64_t ts = mach_absolute_time();
     //set input neurons to input values
-    memcpy(neurons[0], pattern, sizeof(double) * nNeuronsPerLayer[0]);
+    memcpy(neurons[0], pattern, sizeof(double) * _neuronsPerLayer[0]);
     uint64_t ts1 = mach_absolute_time();
     
     
-    for (uint layerNext = 1; layerNext < nLayers; layerNext++) {
+    for (uint layerNext = 1; layerNext < _layerCount; layerNext++) {
     
         uint layerThis = layerNext - 1;
-        uint cNext = nNeuronsPerLayer[layerNext];
-        uint cThis = nNeuronsPerLayer[layerThis];
+        uint cNext = _neuronsPerLayer[layerNext];
+        uint cThis = _neuronsPerLayer[layerThis];
         
         double *neuronsNext = neurons[layerNext];
         double *neuronsThis = neurons[layerThis];
@@ -215,7 +215,7 @@ bool neuralNetwork::loadWeights(const char* filename)
 		}	
 		
 		//check if sufficient weights were loaded
-		if ( weightsVector.size() != ( (nNeuronsPerLayer[0] + 1) * nNeuronsPerLayer[1] + (nNeuronsPerLayer[1] +  1) * nNeuronsPerLayer[2] ) )
+		if ( weightsVector.size() != ( (_neuronsPerLayer[0] + 1) * _neuronsPerLayer[1] + (_neuronsPerLayer[1] +  1) * _neuronsPerLayer[2] ) )
 		{
 			cout << endl << "Error - Incorrect number of weights in input file: " << filename << endl;
 			
@@ -229,17 +229,17 @@ bool neuralNetwork::loadWeights(const char* filename)
 			//set weights
 			int pos = 0;
 
-			for ( int i=0; i <= nNeuronsPerLayer[0]; i++ ) 
+			for ( int i=0; i <= _neuronsPerLayer[0]; i++ ) 
 			{
-				for ( int j=0; j < nNeuronsPerLayer[1]; j++ ) 
+				for ( int j=0; j < _neuronsPerLayer[1]; j++ ) 
 				{
 					weights[0][i][j] = weightsVector[pos++];
 				}
 			}
 			
-			for ( int i=0; i <= nNeuronsPerLayer[1]; i++ ) 
+			for ( int i=0; i <= _neuronsPerLayer[1]; i++ ) 
 			{		
-				for ( int j=0; j < nNeuronsPerLayer[2]; j++ ) 
+				for ( int j=0; j < _neuronsPerLayer[2]; j++ ) 
 				{
 					weights[1][i][j] = weightsVector[pos++];						
 				}
@@ -276,20 +276,20 @@ bool neuralNetwork::saveWeights(const char* filename)
 		outputFile.precision(50);		
 
 		//output weights
-		for ( int i=0; i <= nNeuronsPerLayer[0]; i++ ) 
+		for ( int i=0; i <= _neuronsPerLayer[0]; i++ ) 
 		{
-			for ( int j=0; j < nNeuronsPerLayer[1]; j++ ) 
+			for ( int j=0; j < _neuronsPerLayer[1]; j++ ) 
 			{
 				outputFile << weights[0][i][j] << ",";				
 			}
 		}
 		
-		for ( int i=0; i <= nNeuronsPerLayer[1]; i++ ) 
+		for ( int i=0; i <= _neuronsPerLayer[1]; i++ ) 
 		{		
-			for ( int j=0; j < nNeuronsPerLayer[2]; j++ ) 
+			for ( int j=0; j < _neuronsPerLayer[2]; j++ ) 
 			{
 				outputFile << weights[1][i][j];					
-				if ( i * nNeuronsPerLayer[2] + j + 1 != (nNeuronsPerLayer[1] + 1) * nNeuronsPerLayer[2] ) outputFile << ",";
+				if ( i * _neuronsPerLayer[2] + j + 1 != (_neuronsPerLayer[1] + 1) * _neuronsPerLayer[2] ) outputFile << ",";
 			}
 		}
 
