@@ -39,9 +39,12 @@ public:
 
 	//constructor & destructor
     neuralNetwork(uint numberOfLayers, uint* neuronsInLayer);
-	~neuralNetwork();
+    ~neuralNetwork();
     
-	double* feedForwardPattern( double* pattern );
+    double* getInputLayer(uint *count);
+    double* getOutputLayer(uint *count);
+    
+    double* feedForwardPattern( double* pattern );
     
     //weight operations
     bool loadWeights(const char* inputFilename);
@@ -56,7 +59,6 @@ public:
 
 private: 
 
-	inline double activationFunction( double x );
     void feedForward( double* pattern );
 	
 };
