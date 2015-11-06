@@ -39,46 +39,48 @@ neuralNetworkTrainer::neuralNetworkTrainer( neuralNetwork *nn )	:	NN(nn),
         uint nC = nPl[l];
         uint nCn = nPl[l+1];
         
-        deltas[l] = (double **)malloc(MEMORY_ALIGNED_BYTES((nC + 1) * sizeof(double *)));
+        gradients[l]    = (double *)malloc(MEMORY_ALIGNED_BYTES((nCn + 1) * sizeof(double)));
+        deltas[l]       = (double **)malloc(MEMORY_ALIGNED_BYTES((nC + 1) * sizeof(double *)));
         
-        for ( int i=0; i <= nPl[l]; i++ )
+        for ( int i=0; i <= nC; i++ )
         {
             deltas[l][i] = (double *)malloc(MEMORY_ALIGNED_BYTES(nCn * sizeof(double)));
             
             for ( int j=0; j < nCn; j++ ) deltas[l][i][j] = 0;
         }
-        
-        
-        gradients[l] = (double *)malloc(MEMORY_ALIGNED_BYTES((nCn + 1) * sizeof(double)));
     }
-    
-    /*
-	//create delta lists
-	//--------------------------------------------------------------------------------------------------------
-	deltas[0] = new double*[NN->_neuronsPerLayer[0] + 1] ;
-    deltas[1] = new double*[NN->_neuronsPerLayer[1] + 1] ;
-    gradients[0] = new double[NN->_neuronsPerLayer[1] + 1];
-    gradients[1] = new double[NN->_neuronsPerLayer[2] + 1];
-    
-    
-    for ( int i=0; i <= NN->_neuronsPerLayer[0]; i++ )
-	{
-		deltas[0][i] = new double[NN->_neuronsPerLayer[1]];
-		for ( int j=0; j < NN->_neuronsPerLayer[1]; j++ ) deltas[0][i][j] = 0;
-	}
 
-		for ( int i=0; i <= NN->_neuronsPerLayer[1]; i++ )
-	{
-		deltas[1][i] = new double[NN->_neuronsPerLayer[2]];			
-		for ( int j=0; j < NN->_neuronsPerLayer[2]; j++ ) deltas[1][i][j] = 0;
-	}
-
-	//create error gradient storage
-	//--------------------------------------------------------------------------------------------------------
-	*/
-    
     initializeWeights();
     
+}
+
+neuralNetworkTrainer::~neuralNetworkTrainer(){
+
+    uint *nPl = NN->_neuronsPerLayer;
+    
+    uint lC = NN->_layerCount - 1;
+    
+    for (int l=0; l < lC; l++){
+        
+        free(gradients[l]);
+    }
+    
+    free(gradients);
+    
+    for (int l=0; l < lC; l++){
+        
+        double** ddd = deltas[l];
+        uint nC = nPl[l];
+        
+        for (int j=0; j <= nC; j++)
+        {
+            free(ddd[j]);
+        }
+        
+        free(ddd);
+    }
+    
+    free(deltas);
 }
 
 
@@ -222,69 +224,58 @@ void neuralNetworkTrainer::backpropagate( double* desiredOutputs )
 {		
 	//modify deltas between hidden and output layers
 	//--------------------------------------------------------------------------------------------------------
-	for (int k = 0; k < NN->_neuronsPerLayer[2]; k++)
-	{
-		//get error gradient for every output node
+    
+    uint lastLayerIndex = NN->_layerCount-1;
+    
+    for (uint l = lastLayerIndex; l > 0; l--) {
         
-        double value            = NN->neurons[2][k];
-        double sigmoid_dt       = value * ( 1 - value );
-        double error            = desiredOutputs[k] - value;
+        double *layerNeurons        = NN->neurons[l];
+        double *layerNeuronsPrev    = NN->neurons[l-1];
+        double *gradientsPrev       = gradients[l-1];
+        double **deltasPrev         = deltas[l-1];
         
-		gradients[1][k] = sigmoid_dt * error;
-		
-		//for all nodes in hidden layer and bias neuron
-		for (int j = 0; j <= NN->_neuronsPerLayer[1]; j++) 
-		{
-            double ddd = learningRate * NN->neurons[1][j] * gradients[1][k];
+        uint neuronsCount       = NN->_neuronsPerLayer[l];
+        uint neuronsCountPrev   = NN->_neuronsPerLayer[l-1];
+        
+        for (uint row = 0; row < neuronsCount; row++) {
             
-			//calculate change in weight
-            if ( !useBatch ){
+            double value            = layerNeurons[row];
+            double sigmoid_dt       = value * ( 1 - value );
+            double error            = 0;
             
-                deltas[1][j][k] = ddd  + momentum * deltas[1][j][k];
+            if (l == lastLayerIndex) {
+            
+                error  = desiredOutputs[row] - value;
+                
+            }else{
+            
+                double *w               = NN->weights[l][row];
+                uint neuronsCountNext   = NN->_neuronsPerLayer[l+1];
+                
+                for( int k = 0; k < neuronsCountNext; k++ ){
+                    
+                    error += w[k] * gradients[l][k];
+                }
             }
-            else {
             
-                deltas[1][j][k] += ddd;
+            gradientsPrev[row]      = sigmoid_dt * error;
+            
+            //for all nodes in input layer and bias neuron
+            for (int rowPrev = 0; rowPrev <= neuronsCountPrev; rowPrev++)
+            {
+                
+                double ddd = learningRate * layerNeuronsPrev[rowPrev] * gradientsPrev[row];
+                
+                //calculate change in weight
+                if ( !useBatch )
+                    deltasPrev[rowPrev][row] = ddd + momentum * deltasPrev[rowPrev][row];
+                else
+                    deltasPrev[rowPrev][row] += ddd;
             }
-		}
-	}
-
-	//modify deltas between input and hidden layers
-	//--------------------------------------------------------------------------------------------------------
-	for (int j = 0; j < NN->_neuronsPerLayer[1]; j++)
-	{
-        
-        double value    = NN->neurons[1][j];
-        double sigmoid_dt      = value * ( 1 - value );
-        
-        //get sum of hidden->output weights * output error gradients
-        
-        double *w       = NN->weights[1][j];
-        double error    = 0;
-        
-        for( int k = 0; k < NN->_neuronsPerLayer[2]; k++ ){
-        
-            error += w[k] * gradients[1][k];
         }
-        
-        gradients[0][j] = sigmoid_dt * error;
-
-		//for all nodes in input layer and bias neuron
-		for (int i = 0; i <= NN->_neuronsPerLayer[0]; i++)
-		{
-            
-            double ddd = learningRate * NN->neurons[0][i] * gradients[0][j];
-            
-			//calculate change in weight 
-			if ( !useBatch )
-                deltas[0][i][j] = ddd + momentum * deltas[0][i][j];
-			else
-                deltas[0][i][j] += ddd;
-		}
-	}
-	
-	//if using stochastic learning update the weights immediately
-	if ( !useBatch ) updateWeights();
+    }
+    //if using stochastic learning update the weights immediately
+    if ( !useBatch ) updateWeights();
 }
 
 
@@ -302,7 +293,6 @@ void neuralNetworkTrainer::updateWeights()
         int c0 = NN->_neuronsPerLayer[iL];
         int c1 = NN->_neuronsPerLayer[iL+1];
         
-    
         for (int i = 0; i <= c0; i++)
         {
             double *w = NN->weights[iL][i];

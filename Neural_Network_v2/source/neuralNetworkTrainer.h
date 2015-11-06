@@ -78,13 +78,13 @@ private:
 public:	
 	
 	neuralNetworkTrainer( neuralNetwork* untrainedNetwork );
-	void setTrainingParameters( double lR, double m, bool batch );
+    ~neuralNetworkTrainer();
+    void setTrainingParameters( double lR, double m, bool batch );
 	void setStoppingConditions( int mEpochs, double dAccuracy);
 	void useBatchLearning( bool flag ){ useBatch = flag; }
 	void enableLogging( const char* filename, int resolution );
 
 	void trainNetwork( trainingDataSet* tSet );
-
 	//private methods
 	//--------------------------------------------------------------------------------------------
 private:
