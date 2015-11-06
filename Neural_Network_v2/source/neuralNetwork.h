@@ -8,6 +8,11 @@
 #ifndef NNetwork
 #define NNetwork
 
+#define MEMORY_ALIGNMENT 0x4000
+//#define MEMORY_ALIGNED_BYTES(x) ceil((double)x / (double)MEMORY_ALIGNMENT) * MEMORY_ALIGNMENT
+#define MEMORY_ALIGNED_BYTES(x) x
+
+
 class neuralNetworkTrainer;
 
 class neuralNetwork

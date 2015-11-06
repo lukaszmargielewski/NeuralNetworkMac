@@ -10,10 +10,6 @@
 
 using namespace std;
 
-#define MEMORY_ALIGNMENT 0x4000
-//#define MEMORY_ALIGNED_BYTES(x) ceil((double)x / (double)MEMORY_ALIGNMENT) * MEMORY_ALIGNMENT
-#define MEMORY_ALIGNED_BYTES(x) x
-
 
 static double MachTimeToSecs(uint64_t time);
 
@@ -26,7 +22,7 @@ neuralNetwork::neuralNetwork(uint numberOfLayers, uint* neuronsInLayer) : _layer
     _neuronsPerLayer = (uint *)malloc(sizeof(uint) * _layerCount);
     
     neurons = (double **)malloc(MEMORY_ALIGNED_BYTES(sizeof(double *) * _layerCount));
-    weights = (double ***)malloc(MEMORY_ALIGNED_BYTES(sizeof(double **) * _layerCount - 1));
+    weights = (double ***)malloc(MEMORY_ALIGNED_BYTES(sizeof(double **) * (_layerCount - 1)));
     
     
     for (uint iLayer = 0; iLayer < _layerCount; iLayer++ ){
@@ -41,7 +37,7 @@ neuralNetwork::neuralNetwork(uint numberOfLayers, uint* neuronsInLayer) : _layer
         // All, except last layer have biases and weights:
         
         uint neuronsCount = isLastLayer ? layerSize : layerSize + 1; // + 1 for bias neuron & bias:
-        uint layerBytes = MEMORY_ALIGNED_BYTES((neuronsCount) * sizeof(double));
+        uint layerBytes = MEMORY_ALIGNED_BYTES(neuronsCount * sizeof(double));
 
         neurons[iLayer] = (double *)malloc(layerBytes);
 
@@ -49,7 +45,7 @@ neuralNetwork::neuralNetwork(uint numberOfLayers, uint* neuronsInLayer) : _layer
         
         // All, except last layer have biases and weights:
         
-        if (isLastLayer == false){
+        if (!isLastLayer){
             
             neurons[iLayer][neuronsCount] = -1;
             weights[iLayer] = (double **)malloc(layerBytes);
