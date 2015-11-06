@@ -48,12 +48,9 @@ private:
 	double desiredAccuracy;
 	
 	//change to weights
-	double** delta01;
-	double** delta12;
-
+	double*** deltas;
 	//error gradients
-	double* errorGradients01;
-	double* errorGradients12;
+	double** gradients;
 
 	//accuracy stats per epoch
 	double trainingSetAccuracy;
