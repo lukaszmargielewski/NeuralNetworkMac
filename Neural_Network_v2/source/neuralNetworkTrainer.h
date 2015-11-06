@@ -37,28 +37,28 @@ private:
 	neuralNetwork* NN;
 
 	//learning parameters
-	double learningRate;					// adjusts the step size of the weight update	
-	double momentum;						// improves performance of stochastic learning (don't use for batch)
+	NNType learningRate;					// adjusts the step size of the weight update	
+	NNType momentum;						// improves performance of stochastic learning (don't use for batch)
 
 	//epoch counter
 	long epoch;
 	long maxEpochs;
 	
 	//accuracy/MSE required
-	double desiredAccuracy;
+	NNType desiredAccuracy;
 	
 	//change to weights
-	double*** deltas;
+	NNType*** deltas;
 	//error gradients
-	double** gradients;
+	NNType** gradients;
 
 	//accuracy stats per epoch
-	double trainingSetAccuracy;
-	double validationSetAccuracy;
-	double generalizationSetAccuracy;
-	double trainingSetMSE;
-	double validationSetMSE;
-	double generalizationSetMSE;
+	NNType trainingSetAccuracy;
+	NNType validationSetAccuracy;
+	NNType generalizationSetAccuracy;
+	NNType trainingSetMSE;
+	NNType validationSetMSE;
+	NNType generalizationSetMSE;
 
 	//batch learning flag
 	bool useBatch;
@@ -69,7 +69,7 @@ private:
 	int logResolution;
 	int lastEpochLogged;
     
-    double *outputLayer;
+    NNType *outputLayer;
     uint   outputLayerCount;
     
 
@@ -79,8 +79,8 @@ public:
 	
 	neuralNetworkTrainer( neuralNetwork* untrainedNetwork );
     ~neuralNetworkTrainer();
-    void setTrainingParameters( double lR, double m, bool batch );
-	void setStoppingConditions( int mEpochs, double dAccuracy);
+    void setTrainingParameters( NNType lR, NNType m, bool batch );
+	void setStoppingConditions( int mEpochs, NNType dAccuracy);
 	void useBatchLearning( bool flag ){ useBatch = flag; }
 	void enableLogging( const char* filename, int resolution );
 
@@ -90,13 +90,13 @@ public:
 private:
 
 	void runTrainingEpoch( std::vector<dataEntry*> trainingSet );
-	void backpropagate(double* desiredOutputs);
+	void backpropagate(NNType* desiredOutputs);
 	void updateWeights();
     
     void initializeWeights();
-    double getSetAccuracy( std::vector<dataEntry*>& set );
-    double getSetMSE( std::vector<dataEntry*>& set );
-    inline int clampOutput( double x );
+    NNType getSetAccuracy( std::vector<dataEntry*>& set );
+    NNType getSetMSE( std::vector<dataEntry*>& set );
+    inline int clampOutput( NNType x );
     
     
 };

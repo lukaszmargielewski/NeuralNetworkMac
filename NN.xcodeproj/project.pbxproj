@@ -45,7 +45,6 @@
 		A15449D11BEAA184007CBC82 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A15449F41BEAA2F4007CBC82 /* letter-recognition-2.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "letter-recognition-2.csv"; sourceTree = "<group>"; };
 		A15449F51BEAA2F4007CBC82 /* letter_recognition_training_example.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = letter_recognition_training_example.cpp; sourceTree = "<group>"; };
-		A18D00D31BEAB8E500AE72FB /* dataEntry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dataEntry.h; sourceTree = "<group>"; };
 		A18D00D41BEAB8E500AE72FB /* dataReader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dataReader.cpp; sourceTree = "<group>"; };
 		A18D00D51BEAB8E500AE72FB /* dataReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dataReader.h; sourceTree = "<group>"; };
 		A18D00D61BEAB8E500AE72FB /* neuralNetwork.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = neuralNetwork.cpp; sourceTree = "<group>"; };
@@ -54,6 +53,7 @@
 		A18D00D91BEAB8E500AE72FB /* neuralNetworkTrainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = neuralNetworkTrainer.h; sourceTree = "<group>"; };
 		A18D00DD1BEABEC100AE72FB /* letter_recognition_training_example.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = letter_recognition_training_example.h; sourceTree = "<group>"; };
 		A18D00DE1BEACB6900AE72FB /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		A1FC13CA1BED72DB00742887 /* neuralNetworkCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = neuralNetworkCommon.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -148,9 +148,9 @@
 		A18D00D21BEAB8E500AE72FB /* source */ = {
 			isa = PBXGroup;
 			children = (
-				A18D00D31BEAB8E500AE72FB /* dataEntry.h */,
-				A18D00D41BEAB8E500AE72FB /* dataReader.cpp */,
+				A1FC13CA1BED72DB00742887 /* neuralNetworkCommon.h */,
 				A18D00D51BEAB8E500AE72FB /* dataReader.h */,
+				A18D00D41BEAB8E500AE72FB /* dataReader.cpp */,
 				A18D00D71BEAB8E500AE72FB /* neuralNetwork.h */,
 				A18D00D61BEAB8E500AE72FB /* neuralNetwork.cpp */,
 				A18D00D91BEAB8E500AE72FB /* neuralNetworkTrainer.h */,

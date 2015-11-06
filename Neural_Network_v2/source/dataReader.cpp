@@ -84,8 +84,8 @@ bool dataReader::loadDataFile( const char* filename, int nI, int nT )
 void dataReader::processLine( string &line )
 {
 	//create new pattern and target
-	double* pattern = new double[nInputs];
-	double* target = new double[nTargets];
+	NNType* pattern = new NNType[nInputs];
+	NNType* target = new NNType[nTargets];
 	
 	//store inputs		
 	char* cstr = new char[line.size()+1];
@@ -126,7 +126,7 @@ void dataReader::processLine( string &line )
 /*******************************************************************
 * Selects the data set creation approach
 ********************************************************************/
-void dataReader::setCreationApproach( int approach, double param1, double param2 )
+void dataReader::setCreationApproach( int approach, NNType param1, NNType param2 )
 {
 	//static
 	if ( approach == STATIC )
@@ -167,7 +167,7 @@ void dataReader::setCreationApproach( int approach, double param1, double param2
 			windowingStartIndex = 0;			
 
 			//number of sets
-			numTrainingSets = (int) ceil( (double) ( trainingDataEndIndex - windowingSetSize ) / windowingStepSize ) + 1;
+			numTrainingSets = (int) ceil( (NNType) ( trainingDataEndIndex - windowingSetSize ) / windowingStepSize ) + 1;
 		}			
 	}
 

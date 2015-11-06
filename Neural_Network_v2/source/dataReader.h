@@ -7,6 +7,7 @@
 
 #ifndef _DATAREADER
 #define _DATAREADER
+#include "neuralNetworkCommon.h"
 
 //include standard header files
 #include <vector>
@@ -19,12 +20,12 @@ class dataEntry
 {
 public:	
 	
-	double* pattern;	//input patterns
-	double* target;		//target result
+	NNType* pattern;	//input patterns
+	NNType* target;		//target result
 
 public:	
 
-	dataEntry(double* p, double* t): pattern(p), target(t) {}
+	dataEntry(NNType* p, NNType* t): pattern(p), target(t) {}
 		
 	~dataEntry()
 	{				
@@ -80,7 +81,7 @@ private:
 	int trainingDataEndIndex;
 
 	//creation approach variables
-	double growingStepSize;			//step size - percentage of total set
+	NNType growingStepSize;			//step size - percentage of total set
 	int growingLastDataIndex;		//last index added to current dataSet
 	int windowingSetSize;			//initial size of set
 	int windowingStepSize;			//how many entries to move window by
@@ -94,7 +95,7 @@ public:
 	~dataReader();
 	
 	bool loadDataFile( const char* filename, int nI, int nT );
-	void setCreationApproach( int approach, double param1 = -1, double param2 = -1 );
+	void setCreationApproach( int approach, NNType param1 = -1, NNType param2 = -1 );
 	int getNumTrainingSets();	
 	
 	trainingDataSet* getTrainingDataSet();

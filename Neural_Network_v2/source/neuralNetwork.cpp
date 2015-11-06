@@ -11,7 +11,7 @@
 using namespace std;
 
 
-static double MachTimeToSecs(uint64_t time);
+static NNType MachTimeToSecs(uint64_t time);
 
 /*******************************************************************
 * Constructor
@@ -21,8 +21,8 @@ neuralNetwork::neuralNetwork(uint numberOfLayers, uint* neuronsInLayer) : _layer
     
     _neuronsPerLayer = (uint *)malloc(sizeof(uint) * _layerCount);
     
-    neurons = (double **)malloc(MEMORY_ALIGNED_BYTES(sizeof(double *) * _layerCount));
-    weights = (double ***)malloc(MEMORY_ALIGNED_BYTES(sizeof(double **) * (_layerCount - 1)));
+    neurons = (NNType **)malloc(MEMORY_ALIGNED_BYTES(sizeof(NNType *) * _layerCount));
+    weights = (NNType ***)malloc(MEMORY_ALIGNED_BYTES(sizeof(NNType **) * (_layerCount - 1)));
     
     
     for (uint iLayer = 0; iLayer < _layerCount; iLayer++ ){
@@ -37,9 +37,9 @@ neuralNetwork::neuralNetwork(uint numberOfLayers, uint* neuronsInLayer) : _layer
         // All, except last layer have biases and weights:
         
         uint neuronsCount = isLastLayer ? layerSize : layerSize + 1; // + 1 for bias neuron & bias:
-        uint layerBytes = MEMORY_ALIGNED_BYTES(neuronsCount * sizeof(double));
+        uint layerBytes = MEMORY_ALIGNED_BYTES(neuronsCount * sizeof(NNType));
 
-        neurons[iLayer] = (double *)malloc(layerBytes);
+        neurons[iLayer] = (NNType *)malloc(layerBytes);
 
         printf("\n %i / %i layer. size: %i, neurons count %i, is last: %i", iLayer, _layerCount, layerSize, neuronsCount, isLastLayer);
         
@@ -48,14 +48,14 @@ neuralNetwork::neuralNetwork(uint numberOfLayers, uint* neuronsInLayer) : _layer
         if (!isLastLayer){
             
             neurons[iLayer][neuronsCount] = -1;
-            weights[iLayer] = (double **)malloc(layerBytes);
+            weights[iLayer] = (NNType **)malloc(layerBytes);
             
             for ( int i = 0; i < neuronsCount; i++ ){
                 
                 uint layerSizeNext = neuronsInLayer[iLayer+1];
-                uint layerBytesNext = MEMORY_ALIGNED_BYTES((layerSizeNext+1) * sizeof(double));
+                uint layerBytesNext = MEMORY_ALIGNED_BYTES((layerSizeNext+1) * sizeof(NNType));
                 
-                weights[iLayer][i] = (double *)malloc(layerBytesNext);
+                weights[iLayer][i] = (NNType *)malloc(layerBytesNext);
             }
         }
         
@@ -81,7 +81,7 @@ neuralNetwork::~neuralNetwork(){
 
     for (int iLayer=0; iLayer < _layerCount-1; iLayer++){
     
-        double** wi = weights[iLayer];
+        NNType** wi = weights[iLayer];
         
         uint weightsCount = _neuronsPerLayer[iLayer] + 1;
         
@@ -100,13 +100,13 @@ neuralNetwork::~neuralNetwork(){
  * Input & Output Layer getters:
  ********************************************************************/
 
-double* neuralNetwork::getInputLayer(uint *count){
+NNType* neuralNetwork::getInputLayer(uint *count){
 
     *count = _neuronsPerLayer[0];
     return neurons[0];
     
 }
-double* neuralNetwork::getOutputLayer(uint *count){
+NNType* neuralNetwork::getOutputLayer(uint *count){
 
     *count = _neuronsPerLayer[2];
     return neurons[_layerCount-1];
@@ -117,10 +117,10 @@ double* neuralNetwork::getOutputLayer(uint *count){
 /*******************************************************************
  * Feed Forward Operation
  ********************************************************************/
-void neuralNetwork::feedForward(double *pattern){
+void neuralNetwork::feedForward(NNType *pattern){
     uint64_t ts = mach_absolute_time();
     //set input neurons to input values
-    memcpy(neurons[0], pattern, sizeof(double) * _neuronsPerLayer[0]);
+    memcpy(neurons[0], pattern, sizeof(NNType) * _neuronsPerLayer[0]);
     uint64_t ts1 = mach_absolute_time();
     
     
@@ -130,10 +130,10 @@ void neuralNetwork::feedForward(double *pattern){
         uint cDst = _neuronsPerLayer[iLDst];
         uint cSrc = _neuronsPerLayer[iLSrc];
         
-        double *neuronsDst = neurons[iLDst];
-        double *neuronsSrc = neurons[iLSrc];
+        NNType *neuronsDst = neurons[iLDst];
+        NNType *neuronsSrc = neurons[iLSrc];
         
-        double **weightsSrcDst = weights[iLSrc];
+        NNType **weightsSrcDst = weights[iLSrc];
         
         
         //Calculate Hidden Layer values - include bias neuron
@@ -141,18 +141,18 @@ void neuralNetwork::feedForward(double *pattern){
         for(int rowDst = 0; rowDst < cDst; rowDst++)
         {
             //clear value
-            double sum = 0;
+            NNType sum = 0;
             
             //get weighted sum of pattern and bias neuron
             for( int rowSrc = 0; rowSrc <= cSrc; rowSrc++ ){
             
-                double w = weightsSrcDst[rowSrc][rowDst];
+                NNType w = weightsSrcDst[rowSrc][rowDst];
                 sum += neuronsSrc[rowSrc] * w;
             }
             
             //sigmoid:
-            double s = exp(-sum);
-            double v = (1 / (1 + s ));
+            NNType s = exp(-sum);
+            NNType v = (1 / (1 + s ));
             neuronsDst[rowDst] = v;
         }
         
@@ -176,7 +176,7 @@ bool neuralNetwork::loadWeights(const char* filename){
 
 	if ( inputFile.is_open() )
 	{
-		vector<double> weightsVector;
+		vector<NNType> weightsVector;
 		string line = "";
 		
 		//read data
@@ -261,7 +261,7 @@ bool neuralNetwork::saveWeights(const char* filename){
             {
                 for ( int j = 0; j < _neuronsPerLayer[l+1]; j++ )
                 {
-                    double value = weights[l][i][j];
+                    NNType value = weights[l][i][j];
                     
                     outputFile << value << "\n";
                     //printf("\n %i. [%i][%i][%i] = %.3f", ccc, l, i, j, value);
@@ -291,24 +291,24 @@ bool neuralNetwork::saveWeights(const char* filename){
  ********************************************************************/
 
 
-double neuralNetwork::averageFeedForwardTime(){
+NNType neuralNetwork::averageFeedForwardTime(){
 
-    return MachTimeToSecs((double)totalFeedForwardTime / (double)runCount);
+    return MachTimeToSecs((NNType)totalFeedForwardTime / (NNType)runCount);
     
 }
-double neuralNetwork::averageInputLayerLoadTime(){
+NNType neuralNetwork::averageInputLayerLoadTime(){
 
-    return MachTimeToSecs((double)totalInputLayerLoadTime / (double)runCount);
+    return MachTimeToSecs((NNType)totalInputLayerLoadTime / (NNType)runCount);
 }
 
 uint64_t neuralNetwork::feedForwardCount(){
     return runCount;
 }
-static double MachTimeToSecs(uint64_t time){
+static NNType MachTimeToSecs(uint64_t time){
     mach_timebase_info_data_t timebase;
     mach_timebase_info(&timebase);
-    return (double)time * (double)timebase.numer /
-    (double)timebase.denom / 1e9;
+    return (NNType)time * (NNType)timebase.numer /
+    (NNType)timebase.denom / 1e9;
 }
 
 

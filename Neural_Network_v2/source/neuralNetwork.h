@@ -8,10 +8,7 @@
 #ifndef NNetwork
 #define NNetwork
 
-#define MEMORY_ALIGNMENT 0x4000
-//#define MEMORY_ALIGNED_BYTES(x) ceil((double)x / (double)MEMORY_ALIGNMENT) * MEMORY_ALIGNMENT
-#define MEMORY_ALIGNED_BYTES(x) x
-
+#include "neuralNetworkCommon.h"
 
 class neuralNetworkTrainer;
 
@@ -25,8 +22,8 @@ private:
     uint _layerCount;
     uint *_neuronsPerLayer;
     
-    double** neurons;
-    double*** weights;
+    NNType** neurons;
+    NNType*** weights;
     
     //stats:
     uint64_t runCount;
@@ -46,17 +43,17 @@ public:
     neuralNetwork(uint numberOfLayers, uint* neuronsInLayer);
     ~neuralNetwork();
     
-    double* getInputLayer(uint *count);
-    double* getOutputLayer(uint *count);
+    NNType* getInputLayer(uint *count);
+    NNType* getOutputLayer(uint *count);
     
-    double* feedForwardPattern( double* pattern );
+    NNType* feedForwardPattern( NNType* pattern );
     
     //weight operations
     bool loadWeights(const char* inputFilename);
     bool saveWeights(const char* outputFilename);
 
-    double averageFeedForwardTime();
-    double averageInputLayerLoadTime();
+    NNType averageFeedForwardTime();
+    NNType averageInputLayerLoadTime();
     uint64_t feedForwardCount();
     
 	//private methods
@@ -64,7 +61,7 @@ public:
 
 private: 
 
-    void feedForward( double* pattern );
+    void feedForward( NNType* pattern );
 	
 };
 

@@ -30,8 +30,8 @@ neuralNetworkTrainer::neuralNetworkTrainer( neuralNetwork *nn )	:	NN(nn),
     uint lC = NN->_layerCount - 1;
     uint *nPl = NN->_neuronsPerLayer;
     
-    deltas      = (double ***)malloc(MEMORY_ALIGNED_BYTES(lC * sizeof(double **)));
-    gradients   = (double **)malloc(MEMORY_ALIGNED_BYTES(lC * sizeof(double *)));
+    deltas      = (NNType ***)malloc(MEMORY_ALIGNED_BYTES(lC * sizeof(NNType **)));
+    gradients   = (NNType **)malloc(MEMORY_ALIGNED_BYTES(lC * sizeof(NNType *)));
     
     
     for (uint l = 0; l < lC; l++) {
@@ -39,12 +39,12 @@ neuralNetworkTrainer::neuralNetworkTrainer( neuralNetwork *nn )	:	NN(nn),
         uint nC = nPl[l];
         uint nCn = nPl[l+1];
         
-        gradients[l]    = (double *)malloc(MEMORY_ALIGNED_BYTES((nCn + 1) * sizeof(double)));
-        deltas[l]       = (double **)malloc(MEMORY_ALIGNED_BYTES((nC + 1) * sizeof(double *)));
+        gradients[l]    = (NNType *)malloc(MEMORY_ALIGNED_BYTES((nCn + 1) * sizeof(NNType)));
+        deltas[l]       = (NNType **)malloc(MEMORY_ALIGNED_BYTES((nC + 1) * sizeof(NNType *)));
         
         for ( int i=0; i <= nC; i++ )
         {
-            deltas[l][i] = (double *)malloc(MEMORY_ALIGNED_BYTES(nCn * sizeof(double)));
+            deltas[l][i] = (NNType *)malloc(MEMORY_ALIGNED_BYTES(nCn * sizeof(NNType)));
             
             for ( int j=0; j < nCn; j++ ) deltas[l][i][j] = 0;
         }
@@ -69,7 +69,7 @@ neuralNetworkTrainer::~neuralNetworkTrainer(){
     
     for (int l=0; l < lC; l++){
         
-        double** ddd = deltas[l];
+        NNType** ddd = deltas[l];
         uint nC = nPl[l];
         
         for (int j=0; j <= nC; j++)
@@ -87,7 +87,7 @@ neuralNetworkTrainer::~neuralNetworkTrainer(){
 /*******************************************************************
 * Set training parameters
 ********************************************************************/
-void neuralNetworkTrainer::setTrainingParameters( double lR, double m, bool batch )
+void neuralNetworkTrainer::setTrainingParameters( NNType lR, NNType m, bool batch )
 {
 	learningRate = lR;
 	momentum = m;
@@ -96,7 +96,7 @@ void neuralNetworkTrainer::setTrainingParameters( double lR, double m, bool batc
 /*******************************************************************
 * Set stopping parameters
 ********************************************************************/
-void neuralNetworkTrainer::setStoppingConditions( int mEpochs, double dAccuracy )
+void neuralNetworkTrainer::setStoppingConditions( int mEpochs, NNType dAccuracy )
 {
 	maxEpochs = mEpochs;
 	desiredAccuracy = dAccuracy;	
@@ -125,8 +125,8 @@ void neuralNetworkTrainer::trainNetwork( trainingDataSet* tSet )
 	while (	( trainingSetAccuracy < desiredAccuracy || generalizationSetAccuracy < desiredAccuracy ) && epoch < maxEpochs )				
 	{			
 		//store previous accuracy
-		double previousTAccuracy = trainingSetAccuracy;
-		double previousGAccuracy = generalizationSetAccuracy;
+		NNType previousTAccuracy = trainingSetAccuracy;
+		NNType previousGAccuracy = generalizationSetAccuracy;
 
 		//use training set to train network
 		runTrainingEpoch( tSet->trainingSet );
@@ -176,8 +176,8 @@ void neuralNetworkTrainer::trainNetwork( trainingDataSet* tSet )
 void neuralNetworkTrainer::runTrainingEpoch( vector<dataEntry*> trainingSet )
 {
 	//incorrect patterns
-	double incorrectPatterns = 0;
-	double mse = 0;
+	NNType incorrectPatterns = 0;
+	NNType mse = 0;
 		
 	//for every training pattern
 	for ( int tp = 0; tp < (int) trainingSet.size(); tp++)
@@ -220,7 +220,7 @@ void neuralNetworkTrainer::runTrainingEpoch( vector<dataEntry*> trainingSet )
 /*******************************************************************
 * Propagate errors back through NN and calculate delta values
 ********************************************************************/
-void neuralNetworkTrainer::backpropagate( double* desiredOutputs )
+void neuralNetworkTrainer::backpropagate( NNType* desiredOutputs )
 {		
 	//modify deltas between hidden and output layers
 	//--------------------------------------------------------------------------------------------------------
@@ -229,19 +229,19 @@ void neuralNetworkTrainer::backpropagate( double* desiredOutputs )
     
     for (uint l = lastLayerIndex; l > 0; l--) {
         
-        double *layerNeurons        = NN->neurons[l];
-        double *layerNeuronsPrev    = NN->neurons[l-1];
-        double *gradientsPrev       = gradients[l-1];
-        double **deltasPrev         = deltas[l-1];
+        NNType *layerNeurons        = NN->neurons[l];
+        NNType *layerNeuronsPrev    = NN->neurons[l-1];
+        NNType *gradientsPrev       = gradients[l-1];
+        NNType **deltasPrev         = deltas[l-1];
         
         uint neuronsCount       = NN->_neuronsPerLayer[l];
         uint neuronsCountPrev   = NN->_neuronsPerLayer[l-1];
         
         for (uint row = 0; row < neuronsCount; row++) {
             
-            double value            = layerNeurons[row];
-            double sigmoid_dt       = value * ( 1 - value );
-            double error            = 0;
+            NNType value            = layerNeurons[row];
+            NNType sigmoid_dt       = value * ( 1 - value );
+            NNType error            = 0;
             
             if (l == lastLayerIndex) { // Computing error for last layer is very simple:
             
@@ -249,9 +249,9 @@ void neuralNetworkTrainer::backpropagate( double* desiredOutputs )
                 
             }else{
             
-                double *w               = NN->weights[l][row];
+                NNType *w               = NN->weights[l][row];
                 uint neuronsCountNext   = NN->_neuronsPerLayer[l+1];
-                double *gradientsThis   = gradients[l];
+                NNType *gradientsThis   = gradients[l];
                 
                 for( int k = 0; k < neuronsCountNext; k++ ){
                     
@@ -260,19 +260,19 @@ void neuralNetworkTrainer::backpropagate( double* desiredOutputs )
             }
             
             
-            double g = sigmoid_dt * error;
+            NNType g = sigmoid_dt * error;
             gradientsPrev[row]      = g;
             
             //for all nodes in input layer and bias neuron
             for (int rowPrev = 0; rowPrev <= neuronsCountPrev; rowPrev++)
             {
                 
-                double ddd = learningRate * layerNeuronsPrev[rowPrev] * g;
+                NNType ddd = learningRate * layerNeuronsPrev[rowPrev] * g;
                 
                 //calculate change in weight
                 if ( !useBatch ){
                 
-                    double dt = deltasPrev[rowPrev][row];
+                    NNType dt = deltasPrev[rowPrev][row];
                     deltasPrev[rowPrev][row] = ddd + momentum * dt;
                 }
                 else{
@@ -304,7 +304,7 @@ void neuralNetworkTrainer::updateWeights()
         
         for (int i = 0; i <= c0; i++)
         {
-            double *w = NN->weights[iL][i];
+            NNType *w = NN->weights[iL][i];
             
             for (int j = 0; j < c1; j++)
             {
@@ -324,9 +324,9 @@ void neuralNetworkTrainer::updateWeights()
 /*******************************************************************
  * Return the NN accuracy on the set
  ********************************************************************/
-double neuralNetworkTrainer::getSetAccuracy( std::vector<dataEntry*>& set )
+NNType neuralNetworkTrainer::getSetAccuracy( std::vector<dataEntry*>& set )
 {
-    double incorrectResults = 0;
+    NNType incorrectResults = 0;
     
     //for every training input array
     for ( int tp = 0; tp < (int) set.size(); tp++)
@@ -357,9 +357,9 @@ double neuralNetworkTrainer::getSetAccuracy( std::vector<dataEntry*>& set )
 /*******************************************************************
  * Return the NN mean squared error on the set
  ********************************************************************/
-double neuralNetworkTrainer::getSetMSE( std::vector<dataEntry*>& set )
+NNType neuralNetworkTrainer::getSetMSE( std::vector<dataEntry*>& set )
 {
-    double mse = 0;
+    NNType mse = 0;
     
     //for every training input array
     for ( int tp = 0; tp < (int) set.size(); tp++)
@@ -391,18 +391,18 @@ void neuralNetworkTrainer::initializeWeights()
         int iL1 = iL0 + 1;
 
         //set range
-        double r = 1/sqrt( (double) NN->_neuronsPerLayer[iL0]);
+        NNType r = 1/sqrt( (NNType) NN->_neuronsPerLayer[iL0]);
         
         //set weights between input and hidden
         //--------------------------------------------------------------------------------------------------------
         for(int i = 0; i <= NN->_neuronsPerLayer[iL0]; i++)
         {
-            double *w = NN->weights[iL0][i];
+            NNType *w = NN->weights[iL0][i];
             
             for(int j = 0; j < NN->_neuronsPerLayer[iL1]; j++)
             {
                 //set weights to random values
-                w[j] = ( ( (double)(rand()%100)+1)/100  * 2 * r ) - r;
+                w[j] = ( ( (NNType)(rand()%100)+1)/100  * 2 * r ) - r;
             }
         }
     }
@@ -412,7 +412,7 @@ void neuralNetworkTrainer::initializeWeights()
 /*******************************************************************
  * Output Clamping
  ********************************************************************/
-inline int neuralNetworkTrainer::clampOutput( double x )
+inline int neuralNetworkTrainer::clampOutput( NNType x )
 {
     if ( x < 0.1 ) return 0;
     else if ( x > 0.9 ) return 1;
