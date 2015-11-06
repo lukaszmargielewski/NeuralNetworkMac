@@ -198,8 +198,11 @@ void neuralNetworkTrainer::backpropagate( double* desiredOutputs )
 	{
 		//get error gradient for every output node
         
-        double outputValue = NN->neurons[2][k];
-		errorGradients12[k] = outputValue * ( 1 - outputValue ) * ( desiredOutputs[k] - outputValue );
+        double value            = NN->neurons[2][k];
+        double sigmoid_dt       = value * ( 1 - value );
+        double error            = desiredOutputs[k] - value;
+        
+		errorGradients12[k] = sigmoid_dt * error;
 		
 		//for all nodes in hidden layer and bias neuron
 		for (int j = 0; j <= NN->_neuronsPerLayer[1]; j++) 
@@ -223,21 +226,20 @@ void neuralNetworkTrainer::backpropagate( double* desiredOutputs )
 	for (int j = 0; j < NN->_neuronsPerLayer[1]; j++)
 	{
         
-		//get error gradient for every hidden node
-
+        double value    = NN->neurons[1][j];
+        double sigmoid_dt      = value * ( 1 - value );
+        
         //get sum of hidden->output weights * output error gradients
-        double weightedSum = 0;
         
         double *w       = NN->weights[1][j];
-        double value    = NN->neurons[1][j];
+        double error    = 0;
         
         for( int k = 0; k < NN->_neuronsPerLayer[2]; k++ ){
         
-            weightedSum += w[k] * errorGradients12[k];
+            error += w[k] * errorGradients12[k];
         }
         
-        
-        errorGradients01[j] = value * ( 1 - value ) * weightedSum;
+        errorGradients01[j] = sigmoid_dt * error;
 
 		//for all nodes in input layer and bias neuron
 		for (int i = 0; i <= NN->_neuronsPerLayer[0]; i++)
