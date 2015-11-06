@@ -145,12 +145,15 @@ void neuralNetwork::feedForward(double *pattern){
             
             //get weighted sum of pattern and bias neuron
             for( int rowSrc = 0; rowSrc <= cSrc; rowSrc++ ){
-                
-                sum += neuronsSrc[rowSrc] * weightsSrcDst[rowSrc][rowDst];
+            
+                double w = weightsSrcDst[rowSrc][rowDst];
+                sum += neuronsSrc[rowSrc] * w;
             }
             
-            //sigmoid
-            neuronsDst[rowDst] = ( 1 / (1 + exp(-sum) ) );
+            //sigmoid:
+            double s = exp(-sum);
+            double v = (1 / (1 + s ));
+            neuronsDst[rowDst] = v;
         }
         
     }

@@ -243,7 +243,7 @@ void neuralNetworkTrainer::backpropagate( double* desiredOutputs )
             double sigmoid_dt       = value * ( 1 - value );
             double error            = 0;
             
-            if (l == lastLayerIndex) {
+            if (l == lastLayerIndex) { // Computing error for last layer is very simple:
             
                 error  = desiredOutputs[row] - value;
                 
@@ -251,26 +251,35 @@ void neuralNetworkTrainer::backpropagate( double* desiredOutputs )
             
                 double *w               = NN->weights[l][row];
                 uint neuronsCountNext   = NN->_neuronsPerLayer[l+1];
+                double *gradientsThis   = gradients[l];
                 
                 for( int k = 0; k < neuronsCountNext; k++ ){
                     
-                    error += w[k] * gradients[l][k];
+                    error += w[k] * gradientsThis[k];
                 }
             }
             
-            gradientsPrev[row]      = sigmoid_dt * error;
+            
+            double g = sigmoid_dt * error;
+            gradientsPrev[row]      = g;
             
             //for all nodes in input layer and bias neuron
             for (int rowPrev = 0; rowPrev <= neuronsCountPrev; rowPrev++)
             {
                 
-                double ddd = learningRate * layerNeuronsPrev[rowPrev] * gradientsPrev[row];
+                double ddd = learningRate * layerNeuronsPrev[rowPrev] * g;
                 
                 //calculate change in weight
-                if ( !useBatch )
-                    deltasPrev[rowPrev][row] = ddd + momentum * deltasPrev[rowPrev][row];
-                else
+                if ( !useBatch ){
+                
+                    double dt = deltasPrev[rowPrev][row];
+                    deltasPrev[rowPrev][row] = ddd + momentum * dt;
+                }
+                else{
+                
                     deltasPrev[rowPrev][row] += ddd;
+                }
+                
             }
         }
     }
