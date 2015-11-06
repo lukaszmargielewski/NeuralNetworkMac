@@ -314,7 +314,7 @@ void neuralNetworkTrainer::updateWeights()
                 
                 //clear delta only if using batch (previous delta is needed for momentum
                 if (useBatch)
-                    deltas[i][j] = 0;
+                    deltas[iL][i][j] = 0;
             }
         }
         
