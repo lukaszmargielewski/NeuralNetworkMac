@@ -229,55 +229,56 @@ void neuralNetworkTrainer::backpropagate( NNType* desiredOutputs )
     
     for (uint l = lastLayerIndex; l > 0; l--) {
         
-        NNType *layerNeurons        = NN->neurons[l];
-        NNType *layerNeuronsPrev    = NN->neurons[l-1];
-        NNType *gradientsPrev       = gradients[l-1];
-        NNType **deltasPrev         = deltas[l-1];
+        NNType * neu            = NN->neurons[l];
+        NNType *_neu            = NN->neurons[l-1];
         
-        uint neuronsCount       = NN->_neuronsPerLayer[l];
-        uint neuronsCountPrev   = NN->_neuronsPerLayer[l-1];
+        NNType *_grad           = gradients[l-1];
+        NNType **_delt          = deltas[l-1];
         
-        for (uint row = 0; row < neuronsCount; row++) {
+        uint  c   = NN->_neuronsPerLayer[l];
+        uint _c   = NN->_neuronsPerLayer[l-1];
+        
+        for (uint n = 0; n < c; n++) {
             
-            NNType value            = layerNeurons[row];
+            NNType value            = neu[n];
             NNType sigmoid_dt       = value * ( 1 - value );
             NNType error            = 0;
             
             if (l == lastLayerIndex) { // Computing error for last layer is very simple:
             
-                error  = desiredOutputs[row] - value;
+                error  = desiredOutputs[n] - value;
                 
             }else{
             
-                NNType *w               = NN->weights[l][row];
-                uint neuronsCountNext   = NN->_neuronsPerLayer[l+1];
-                NNType *gradientsThis   = gradients[l];
+                NNType *w       = NN->weights[l][n];
+                uint c_         = NN->_neuronsPerLayer[l+1];
+                NNType *grad    = gradients[l];
                 
-                for( int k = 0; k < neuronsCountNext; k++ ){
+                for( int n_ = 0; n_ < c_; n_++ ){
                     
-                    error += w[k] * gradientsThis[k];
+                    error += w[n_] * grad[n_];
                 }
             }
             
             
             NNType g = sigmoid_dt * error;
-            gradientsPrev[row]      = g;
+            _grad[n] = g;
             
             //for all nodes in input layer and bias neuron
-            for (int rowPrev = 0; rowPrev <= neuronsCountPrev; rowPrev++)
+            for (int _n = 0; _n <= _c; _n++)
             {
                 
-                NNType ddd = learningRate * layerNeuronsPrev[rowPrev] * g;
+                NNType ddd = learningRate * _neu[_n] * g;
                 
                 //calculate change in weight
                 if ( !useBatch ){
                 
-                    NNType dt = deltasPrev[rowPrev][row];
-                    deltasPrev[rowPrev][row] = ddd + momentum * dt;
+                    NNType dt = _delt[_n][n];
+                    _delt[_n][n] = ddd + momentum * dt;
                 }
                 else{
                 
-                    deltasPrev[rowPrev][row] += ddd;
+                    _delt[_n][n] += ddd;
                 }
                 
             }
@@ -297,23 +298,23 @@ void neuralNetworkTrainer::updateWeights()
 	//--------------------------------------------------------------------------------------------------------
 
     
-    for (int iL = 0; iL < NN->_layerCount - 1; iL++) {
+    for (int l = 0; l < NN->_layerCount - 1; l++) {
     
-        int c0 = NN->_neuronsPerLayer[iL];
-        int c1 = NN->_neuronsPerLayer[iL+1];
+        int c  = NN->_neuronsPerLayer[l];
+        int c_ = NN->_neuronsPerLayer[l+1];
         
-        for (int i = 0; i <= c0; i++)
+        for (int n = 0; n <= c; n++)
         {
-            NNType *w = NN->weights[iL][i];
+            NNType *w = NN->weights[l][n];
             
-            for (int j = 0; j < c1; j++)
+            for (int n_ = 0; n_ < c_; n_++)
             {
                 //update weight
-                w[j] += deltas[iL][i][j];
+                w[n_] += deltas[l][n][n_];
                 
                 //clear delta only if using batch (previous delta is needed for momentum
                 if (useBatch)
-                    deltas[iL][i][j] = 0;
+                    deltas[l][n][n_] = 0;
             }
         }
         
