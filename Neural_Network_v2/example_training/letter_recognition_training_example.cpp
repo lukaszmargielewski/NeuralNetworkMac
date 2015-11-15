@@ -14,9 +14,43 @@
 //custom includes
 #include "neuralNetwork.h"
 #include "neuralNetworkTrainer.h"
+#include "cann.h"
 
 //use standard namespace
 using namespace std;
+
+//create neural network
+uint layerSizesUint[3] = {16, 10, 3};
+long layerSizesLong[3] = {16, 10, 3};
+
+neuralNetwork nn(3, layerSizesUint);
+Cann *cann = CannCreateFromArray(layerSizesLong, 3);
+
+
+void callbackFunction(neuralNetwork *network, NNType *pattern, NNType *result){
+
+    vector<NNType>w = network->weightsVector();
+    long wC = w.size();
+    
+    printf("!callbackFunction: %llu (weights: %lu)\n", network->feedForwardCount(), wC);
+
+    CannType *weightsArray = w.data();
+    CannLoadWeights(cann, weightsArray, wC);
+    CannType *cannResult = CannFeedForward(cann, pattern);
+    
+    uint outputCount = 0;
+    NNType* ol = network->getOutputLayer(&outputCount);
+    
+    for ( int i = 0; i < outputCount; i++) {
+    
+        NNType nnOut = result[i];
+        CannType cannOut = cannResult[i];
+        
+        if (nnOut != cannOut) {
+            printf(" !!!! error nn out[%i] = %f, cann out[%i] = %f, diff = %f\n", i, nnOut, i, cannOut, cannOut - nnOut);
+        }
+    }
+}
 
 void example_nn(const char *inputFile, const char *outputFile, const char *logFile)
 {		
@@ -28,11 +62,15 @@ void example_nn(const char *inputFile, const char *outputFile, const char *logFi
 	d.loadDataFile(inputFile,16,3);
 	d.setCreationApproach( STATIC, 10 );	
 
-	//create neural network
-    uint layerSizes[3] = {16, 10, 3};
+    if (sizeof(NNType) != sizeof(CannType)) {
+        printf("sizeof(NNType) != sizeof(CannType) !!!! = STOP");
+        return;
+        
+    }
     
-	neuralNetwork nn(3, layerSizes);
-
+    
+    nn.callback = &callbackFunction;
+    
 	//create neural network trainer
 	neuralNetworkTrainer nT( &nn );
 	nT.setTrainingParameters(0.001, 0.9, false);

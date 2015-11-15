@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "14E5100115412FD177731C7028AF7F9C9DA33F50",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "D1FC9F1817B72E98EC19DF06B7E4E2B25E5CE40A" : 0,
+    "14E5100115412FD177731C7028AF7F9C9DA33F50" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "E1884D0F-E3DA-43D0-A1F1-04FCBEC8E987",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "D1FC9F1817B72E98EC19DF06B7E4E2B25E5CE40A" : "CANN\/",
+    "14E5100115412FD177731C7028AF7F9C9DA33F50" : "NN\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "NN",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "NN.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/lukaszmargielewski\/NeuralNetworkMac.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "14E5100115412FD177731C7028AF7F9C9DA33F50"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/lukaszmargielewski\/cann.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "D1FC9F1817B72E98EC19DF06B7E4E2B25E5CE40A"
+    }
+  ]
+}

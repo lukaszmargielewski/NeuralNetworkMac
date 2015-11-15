@@ -1,14 +1,11 @@
 //standard includes
 #include <iostream>
-#include <vector>
 #include <fstream>
 #include <math.h>
 
 //include definition file
 #include "neuralNetwork.h"
 #include <mach/mach_time.h>
-
-using namespace std;
 
 
 static NNType MachTimeToSecs(uint64_t time);
@@ -24,6 +21,7 @@ neuralNetwork::neuralNetwork(uint numberOfLayers, uint* neuronsInLayer) : _layer
     neurons = (NNType **)malloc(MEMORY_ALIGNED_BYTES(sizeof(NNType *) * _layerCount));
     weights = (NNType ***)malloc(MEMORY_ALIGNED_BYTES(sizeof(NNType **) * (_layerCount - 1)));
     
+    callback = NULL;
     
     for (uint iLayer = 0; iLayer < _layerCount; iLayer++ ){
     
@@ -164,6 +162,13 @@ void neuralNetwork::feedForward(NNType *pattern){
     totalFeedForwardTime += (te - ts1);
     totalInputLayerLoadTime += (ts1 - ts);
     runCount++;
+    
+    if (callback != NULL) {
+    
+        callback(this, pattern, neurons[_layerCount-1]);
+    }
+    
+    
 }
 
 /*******************************************************************
@@ -190,7 +195,8 @@ bool neuralNetwork::loadWeights(const char* filename){
 				//store inputs		
 				char* cstr = new char[line.size()+1];
 				strcpy(cstr, line.c_str());
-                weightsVector.push_back( atof(cstr) );
+                NNType value =  atof(cstr);
+                weightsVector.push_back(value);
 				//free memory
 				delete[] cstr;
 			}
@@ -238,7 +244,32 @@ bool neuralNetwork::loadWeights(const char* filename){
 		return false;
 	}
 }
+vector<NNType> neuralNetwork::weightsVector(){
 
+    std::vector<NNType>vector;
+    
+
+    int lc = _layerCount - 1;
+
+    for (int l = 0; l < lc; l++) {
+        
+        int lc = (_neuronsPerLayer[l] + 1);
+        
+        for ( int i = 0; i < lc; i++ )
+        {
+            int jc = _neuronsPerLayer[l+1];
+            
+            for ( int j = 0; j < jc; j++ )
+            {
+                NNType value = weights[l][i][j];
+                vector.push_back(value);
+            }
+        }
+    }
+    
+    return vector;
+    
+}
 
 /*******************************************************************
 * Save Neuron Weights

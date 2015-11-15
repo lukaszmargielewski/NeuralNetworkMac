@@ -8,9 +8,19 @@
 #ifndef NNetwork
 #define NNetwork
 
+#include <vector>
+
+
 #include "neuralNetworkCommon.h"
 
+using namespace std;
+
+
 class neuralNetworkTrainer;
+class neuralNetwork
+;
+
+typedef void (* neuralNetworkCallback)(neuralNetwork*network, NNType *pattern, NNType *result);
 
 class neuralNetwork
 {
@@ -47,6 +57,10 @@ public:
     NNType* getOutputLayer(uint *count);
     
     NNType* feedForwardPattern( NNType* pattern );
+    
+    vector<NNType> weightsVector();
+        
+    neuralNetworkCallback callback;
     
     //weight operations
     bool loadWeights(const char* inputFilename);

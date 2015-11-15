@@ -9,14 +9,14 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Neural_Network_v2/source/neuralNetworkTrainer.cpp"
-            timestampString = "468455422.851164"
+            filePath = "../CANN/src/cann_train.c"
+            timestampString = "469152435.390011"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "133"
-            endingLineNumber = "133"
-            landmarkName = "neuralNetworkTrainer::trainNetwork( trainingDataSet* tSet )"
-            landmarkType = "5">
+            startingLineNumber = "217"
+            endingLineNumber = "217"
+            landmarkName = "CannTrainBackpropagate()"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>
